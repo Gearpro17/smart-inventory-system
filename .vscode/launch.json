@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-InventoryApplication<inventory>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.joele.inventory.InventoryApplication",
+            "projectName": "inventory",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

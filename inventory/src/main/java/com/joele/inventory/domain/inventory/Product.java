@@ -27,4 +27,32 @@ public class Product {
     public Long getMinStock() {return minStock;}
 
     // Derived Behaviour
+    public Product applyMovement(StockMovement movement){
+        if (!movement.getProductId().equals(this.id)){
+            throw DomainException.of("Movement product ID does not match");
+        }
+
+        long updatedStock = this.currentStock + movement.getSignedQuantity();
+        if (updatedStock < 0){
+            throw DomainException.of("Insufficient stock for this movement");
+        }
+
+        return new Product(
+            this.id,
+            this.name,
+            updatedStock,
+            this.minStock);
+    }
+
+    public boolean isLowStock(){
+        return this.currentStock < this.minStock;
+    }
+
+    public boolean isOutOfStock(){
+        return this.currentStock == 0;
+    }
+
+    public boolean canRemoveStock(long quantity){
+        return this.currentStock - quantity >= 0;
+    }
 }
