@@ -33,9 +33,6 @@ public class Product {
         }
 
         long updatedStock = this.currentStock + movement.getSignedQuantity();
-        if (updatedStock < 0){
-            throw DomainException.of("Insufficient stock for this movement");
-        }
 
         return new Product(
             this.id,
