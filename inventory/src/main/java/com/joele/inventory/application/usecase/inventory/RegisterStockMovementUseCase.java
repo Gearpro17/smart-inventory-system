@@ -1,5 +1,7 @@
 package com.joele.inventory.application.usecase.inventory;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+
 import com.joele.inventory.application.port.ProductRepository;
 import com.joele.inventory.application.port.StockMovementRepository;
 import com.joele.inventory.common.DomainException;
@@ -18,7 +20,7 @@ public class RegisterStockMovementUseCase {
         this.stockMovementRepository = stockMovementRepository;
     }
 
-    public void execute(RegisterStockMovementCommand command) {
+    public void execute(RegisterStockMovementCommand command) throws NotFoundException {
         if (command == null) {
             throw new IllegalArgumentException("Command cannot be null");
         }
@@ -26,7 +28,7 @@ public class RegisterStockMovementUseCase {
         // Validate product existence and load product
         Product product = productRepository.findById(command.productId());
         if (product == null) {
-        throw DomainException.of("Product not found");
+            throw new NotFoundException();
         }
 
         // Create and save stock movement
@@ -44,7 +46,7 @@ public class RegisterStockMovementUseCase {
         Product updatedProduct = product.applyMovement(movement);
 
         // Persist changes
-        productRepository.save(updatedProduct);
         stockMovementRepository.save(movement);
+        productRepository.save(updatedProduct);
     }
 }
