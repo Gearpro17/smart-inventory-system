@@ -1,4 +1,4 @@
-package com.joele.inventory;
+package com.joele.inventory.domain.inventory;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -6,16 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import com.joele.inventory.common.DomainException;
 import com.joele.inventory.common.enums.MovementType;
-import com.joele.inventory.domain.inventory.InventoryPolicy;
-import com.joele.inventory.domain.inventory.Product;
-import com.joele.inventory.domain.inventory.StockMovement;
 
 public class InventoryPolicyTest {
 
     @Test
     public void testValidateMovement_NullProduct_ThrowsException() {
         StockMovement movement = new StockMovement(
-            "mov1",
+            null,
             "prod1",
             MovementType.IN,
             10);
@@ -48,7 +45,7 @@ public class InventoryPolicyTest {
 
         assertThrows(DomainException.class, () -> {
             StockMovement movement = new StockMovement(
-            "mov1",
+            1l,
             "prod1",
             null,
             10);
@@ -67,7 +64,7 @@ public class InventoryPolicyTest {
 
         assertThrows(DomainException.class, () -> {
             StockMovement movement = new StockMovement(
-            "mov1",
+            1l,
             "prod1",
             MovementType.IN,
             0L);
@@ -85,7 +82,7 @@ public class InventoryPolicyTest {
             10);
 
         StockMovement movement = new StockMovement(
-            "mov1",
+            1l,
             "prod1",
             MovementType.OUT,
             10);
@@ -104,7 +101,7 @@ public class InventoryPolicyTest {
             10);
 
         StockMovement movement = new StockMovement(
-            "mov1",
+            1l,
             "prod1",
             MovementType.IN,
             20);
@@ -121,7 +118,7 @@ public class InventoryPolicyTest {
             10);
 
         StockMovement movement = new StockMovement(
-            "mov1",
+            1l,
             "prod1",
             MovementType.OUT,
             20);

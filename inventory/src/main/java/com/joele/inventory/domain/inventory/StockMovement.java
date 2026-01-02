@@ -7,14 +7,13 @@ import com.joele.inventory.common.enums.MovementType;
 
 public class StockMovement {
 
-    private final String id;
+    private final Long id;
     private final String productId;
     private final MovementType type;
     private final long quantity;
     private final LocalDateTime timestamp;
 
-    public StockMovement(String id, String productId, MovementType type, long quantity) {
-        if (id == null || id.isBlank()) throw new DomainException("Movement ID cannot be empty");
+    public StockMovement(Long id, String productId, MovementType type, long quantity) {
         if (productId == null || productId.isBlank()) throw new DomainException("Product ID cannot be empty");
         if (quantity <= 0) throw new DomainException("Quantity must be greater than zero");
         if (type == null) throw new DomainException("Movement type cannot be null");
@@ -27,7 +26,7 @@ public class StockMovement {
     }
 
     // Getters
-    public String getId() { return id; }
+    public Long getId() { return id; }
     public String getProductId() { return productId; }
     public MovementType getType() { return type; }
     public long getQuantity() { return quantity; }
