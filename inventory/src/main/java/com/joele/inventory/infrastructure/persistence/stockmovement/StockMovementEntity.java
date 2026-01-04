@@ -1,6 +1,5 @@
 package com.joele.inventory.infrastructure.persistence.stockmovement;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.joele.inventory.common.enums.MovementType;

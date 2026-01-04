@@ -14,6 +14,8 @@ import com.joele.inventory.domain.inventory.StockMovement;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import java.util.Optional;
+
 public class RegisterStockMovementUseCaseTest {
 
     private ProductRepository productRepository;
@@ -47,7 +49,7 @@ public class RegisterStockMovementUseCaseTest {
         );
 
         Mockito.when(productRepository.findById("product-1"))
-                .thenReturn(product);
+                .thenReturn(Optional.of(product));
 
         useCase.execute(command);
         
@@ -67,7 +69,7 @@ public class RegisterStockMovementUseCaseTest {
         );
 
         Mockito.when(productRepository.findById("non-existent-product"))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> useCase.execute(command));
         
