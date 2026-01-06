@@ -1,7 +1,6 @@
 package com.joele.inventory.infrastructure.persistence.product;
 
-import org.springframework.data.relational.core.mapping.Table;
-
+import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
