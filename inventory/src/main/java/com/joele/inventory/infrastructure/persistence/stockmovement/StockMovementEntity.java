@@ -33,7 +33,7 @@ public class StockMovementEntity {
     @Column(name = "QUANTITY", nullable = false)
     private long quantity;
 
-    @Column(name = "TIMESTAMP", nullable = false, columnDefinition = "DATETIME")
+    @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime timestamp;
 
     protected StockMovementEntity() {
