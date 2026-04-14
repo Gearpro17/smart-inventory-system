@@ -1,0 +1,52 @@
+.container {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "menu content"
+    "footer footer";
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 60px 1fr 30px;
+  height: 100vh;
+  overflow: hidden;
+}
+.container div {
+  background-color: #30302e;
+  color: #d4dfe3;
+}
+.container div.header {
+  grid-area: header;
+  text-align: center;
+  justify-content: center;
+  border-bottom: 1px solid #41413e;
+  padding: 10px;
+}
+.container div.menu {
+  grid-area: menu;
+  border-right: 1px solid #41413e;
+  padding-left: 40px;
+  padding-top: 30px;
+  overflow: hidden;
+}
+.container div.content {
+  grid-area: content;
+  overflow-y: auto;
+  min-height: 0;
+  background-color: #141413;
+}
+.container div.footer {
+  grid-area: footer;
+  text-align: center;
+  opacity: 50%;
+  padding: 5px;
+  max-height: 2rem;
+  font-size: 10px;
+}
+.container div.footer h4{
+  margin: 0;
+}
+
+app-header,
+app-side-menu {
+  display: block;
+  height: 100%;
+}
