@@ -1,0 +1,54 @@
+.header-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 150px;
+  align-items: center;
+  height: 100%;
+
+  .header-left {
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 17px;
+
+    .logo-box {
+      height: 24px;
+      border-radius: 4px;
+      background-color: darkorange;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+
+    .profile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #eeedfe;
+      color: #403c83;
+      border-radius: 4px;
+      width: 70px;
+      height: 25px;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #e1f5ee;
+      color: #036547;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+    }
+  }
+}
+
