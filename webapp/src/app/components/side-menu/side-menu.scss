@@ -1,0 +1,42 @@
+.section-title {
+  display: block;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+  letter-spacing: 0.1rem;
+  font-size: 10px;
+  font-weight: 600;
+  padding-left: 10px;
+  color: darkgray;
+}
+
+.section-btns {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.dashboard-btn {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 8px 8px;
+  border-radius: 10px;
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 520;
+  color: darkgray;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.dashboard-btn:hover {
+  box-shadow: 4px 4px 4px rgb(34 34 34 / 0.7);
+}
+
+.dashboard-btn:active {
+  transform: scale(0.97);
+  background: #e1f5ee;
+  color: #085041;
+}
