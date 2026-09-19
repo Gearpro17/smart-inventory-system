@@ -1,4 +1,5 @@
 # Smart Inventory & Reorder System
+![Preview of my app](webapp/public/inventory_management_concept_art.png)
 
 ## Overview
 
