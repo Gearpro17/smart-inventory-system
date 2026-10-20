@@ -7,6 +7,26 @@ The Smart Inventory & Reorder System is a web-based backend-driven application d
 The project’s primary objective is not to build a feature-heavy UI, but to demonstrate correct backend architecture, strong separation of concerns, and centralized business logic, following Clean Architecture and SOLID principles.
   
 All business decisions such as stock validation, movement rules, and reorder calculations are enforced exclusively in the backend, ensuring consistency, correctness, and testability regardless of the frontend consumer.
+
+## Run with Docker
+
+Docker Desktop must be running. From the repository root, start the frontend, backend API, and MySQL database with:
+
+```bash
+docker compose up --build
+```
+
+Open the Angular app at <http://localhost:4200>. The Spring Boot API is available at <http://localhost:8080>. The database data is stored in a named Docker volume and remains available when the containers are stopped.
+
+To stop the services, press `Ctrl+C` and run:
+
+```bash
+docker compose down
+```
+
+To also delete the local database volume and its data, run `docker compose down -v`.
+
+The Compose configuration uses development-only default MySQL passwords. Set `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in the shell or an untracked `.env` file before starting if you want to override them.
   
 ## Project Goals
   

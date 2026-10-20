@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:db}:${DB_PORT:3306}/${DB_NAME:inventory_management}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER:inventory}
+    password: ${DB_PASSWORD:inventory_dev_password}
+  jpa:
+    hibernate:
+      ddl-auto: update

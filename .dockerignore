@@ -1,0 +1,9 @@
+.git
+.idea
+.vscode
+**/node_modules
+**/target
+**/dist
+**/.angular
+**/.env
+**/.DS_Store
