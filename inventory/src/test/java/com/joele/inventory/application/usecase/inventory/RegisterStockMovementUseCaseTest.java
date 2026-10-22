@@ -3,7 +3,6 @@ package com.joele.inventory.application.usecase.inventory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
 import com.joele.inventory.application.port.ProductRepository;
 import com.joele.inventory.application.port.StockMovementRepository;
@@ -33,7 +32,7 @@ public class RegisterStockMovementUseCaseTest {
     }
 
     @Test
-    void testExecute_ShouldRegisterStockMovementSuccessfully() throws NotFoundException {
+    void testExecute_ShouldRegisterStockMovementSuccessfully() {
         // Arrange
         var command = new RegisterStockMovementCommand(
                 "product-1",
@@ -60,7 +59,7 @@ public class RegisterStockMovementUseCaseTest {
     }
 
     @Test
-    void testExcecute_ShouldThrowException_WhenProductNotFound() throws NotFoundException {
+    void testExcecute_ShouldThrowException_WhenProductNotFound() {
         // Arrange
         var command = new RegisterStockMovementCommand(
                 "non-existent-product",
@@ -71,7 +70,7 @@ public class RegisterStockMovementUseCaseTest {
         Mockito.when(productRepository.findById("non-existent-product"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> useCase.execute(command));
+        assertThrows(ProductNotFoundException.class, () -> useCase.execute(command));
         
         verify(productRepository, times(1)).findById("non-existent-product");
         verify(productRepository, never()).save(any(Product.class));

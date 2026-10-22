@@ -1,15 +1,15 @@
 package com.joele.inventory.application.usecase.inventory;
 
 import com.joele.inventory.domain.inventory.Product;
-import com.joele.inventory.infrastructure.persistence.product.ProductRepositoryAdapter;
+import com.joele.inventory.application.port.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CreateNewProductUseCase {
-    private final ProductRepositoryAdapter productRepository;
+    private final ProductRepository productRepository;
 
-    public CreateNewProductUseCase(ProductRepositoryAdapter productRepository) {
+    public CreateNewProductUseCase(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
 
@@ -33,7 +33,7 @@ public class CreateNewProductUseCase {
             // Persist
             productRepository.save(product);
         } else {
-            throw new IllegalArgumentException("Product with id" +  command.id() + "already exists");
+            throw new IllegalArgumentException("Product with ID " + command.id() + " already exists");
         }
     }
 }

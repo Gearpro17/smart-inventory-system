@@ -9,7 +9,8 @@ public class StockMovementMapper {
                 entity.getId(),
                 entity.getProductId(),
                 entity.getType(),
-                entity.getQuantity()
+                entity.getQuantity(),
+                entity.getTimestamp()
             );
     }
 
