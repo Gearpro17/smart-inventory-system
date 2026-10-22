@@ -1,6 +1,7 @@
 package com.joele.inventory.infrastructure.persistence.stockmovement;
 
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 import com.joele.inventory.application.port.StockMovementRepository;
 import com.joele.inventory.domain.inventory.StockMovement;
@@ -18,8 +19,13 @@ public class StockMovementRepositoryAdapter implements StockMovementRepository {
     @Override
     public StockMovement save(StockMovement movement) {
         StockMovementEntity entity = StockMovementMapper.toEntity(movement);
-        repository.save(entity);
-        return movement;
+        return StockMovementMapper.toDomain(repository.save(entity));
+    }
+
+    @Override
+    public List<StockMovement> findByProductId(String productId) {
+        return repository.findByProductIdOrderByTimestampDescIdDesc(productId).stream()
+                .map(StockMovementMapper::toDomain).toList();
     }
 
 }

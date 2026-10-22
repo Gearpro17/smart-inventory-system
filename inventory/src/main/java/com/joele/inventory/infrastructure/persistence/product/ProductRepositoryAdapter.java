@@ -1,6 +1,7 @@
 package com.joele.inventory.infrastructure.persistence.product;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
@@ -21,6 +22,11 @@ public class ProductRepositoryAdapter implements ProductRepository {
     public Optional<Product> findById(String productId) {
         return repository.findById(productId)
         .map(ProductMapper::toDomain);
+    }
+
+    @Override
+    public List<Product> findAll() {
+        return repository.findAll().stream().map(ProductMapper::toDomain).toList();
     }
 
     @Override

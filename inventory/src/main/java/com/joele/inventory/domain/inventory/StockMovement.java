@@ -14,6 +14,10 @@ public class StockMovement {
     private final LocalDateTime timestamp;
 
     public StockMovement(Long id, String productId, MovementType type, long quantity) {
+        this(id, productId, type, quantity, LocalDateTime.now());
+    }
+
+    public StockMovement(Long id, String productId, MovementType type, long quantity, LocalDateTime timestamp) {
         if (productId == null || productId.isBlank()) throw new DomainException("Product ID cannot be empty");
         if (quantity <= 0) throw new DomainException("Quantity must be greater than zero");
         if (type == null) throw new DomainException("Movement type cannot be null");
@@ -22,7 +26,8 @@ public class StockMovement {
         this.productId = productId;
         this.type = type;
         this.quantity = quantity;
-        this.timestamp = LocalDateTime.now();
+        if (timestamp == null) throw new DomainException("Movement timestamp cannot be null");
+        this.timestamp = timestamp;
     }
 
     // Getters

@@ -1,6 +1,5 @@
 package com.joele.inventory.application.usecase.inventory;
 
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +22,14 @@ public class RegisterStockMovementUseCase {
     }
 
     @Transactional
-    public void execute(RegisterStockMovementCommand command) throws NotFoundException {
+    public StockMovement execute(RegisterStockMovementCommand command) {
         if (command == null) {
             throw new IllegalArgumentException("Command cannot be null");
         }
 
         // Validate product existence and load product
         Product product = productRepository.findById(command.productId())
-            .orElseThrow(() -> new NotFoundException());
+            .orElseThrow(() -> new ProductNotFoundException(command.productId()));
 
         // Create and save stock movement
         StockMovement movement = new StockMovement(
@@ -47,7 +46,8 @@ public class RegisterStockMovementUseCase {
         Product updatedProduct = product.applyMovement(movement);
 
         // Persist changes
-        stockMovementRepository.save(movement);
+        StockMovement savedMovement = stockMovementRepository.save(movement);
         productRepository.save(updatedProduct);
+        return savedMovement;
     }
 }
