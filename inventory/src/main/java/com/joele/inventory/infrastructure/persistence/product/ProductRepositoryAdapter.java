@@ -26,7 +26,12 @@ public class ProductRepositoryAdapter implements ProductRepository {
 
     @Override
     public List<Product> findAll() {
-        return repository.findAll().stream().map(ProductMapper::toDomain).toList();
+        return repository.findAllByOrderByNameAscIdAsc().stream().map(ProductMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Product> findLowStock() {
+        return repository.findLowStock().stream().map(ProductMapper::toDomain).toList();
     }
 
     @Override
