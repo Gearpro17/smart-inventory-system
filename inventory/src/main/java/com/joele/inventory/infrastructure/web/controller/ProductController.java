@@ -8,6 +8,7 @@ import com.joele.inventory.application.usecase.inventory.CreateNewProductUseCase
 import com.joele.inventory.application.usecase.inventory.CreateProductCommand;
 import com.joele.inventory.application.usecase.inventory.GetProductUseCase;
 import com.joele.inventory.application.usecase.inventory.ListProductsUseCase;
+import com.joele.inventory.application.usecase.inventory.ListLowStockProductsUseCase;
 import com.joele.inventory.application.usecase.inventory.ListStockMovementsUseCase;
 import com.joele.inventory.application.usecase.inventory.RegisterStockMovementCommand;
 import com.joele.inventory.application.usecase.inventory.RegisterStockMovementUseCase;
@@ -21,15 +22,18 @@ import java.util.List;
 public class ProductController {
     private final CreateNewProductUseCase createProduct;
     private final ListProductsUseCase listProducts;
+    private final ListLowStockProductsUseCase listLowStockProducts;
     private final GetProductUseCase getProduct;
     private final RegisterStockMovementUseCase registerMovement;
     private final ListStockMovementsUseCase listMovements;
 
     public ProductController(CreateNewProductUseCase createProduct, ListProductsUseCase listProducts,
+                             ListLowStockProductsUseCase listLowStockProducts,
                              GetProductUseCase getProduct, RegisterStockMovementUseCase registerMovement,
                              ListStockMovementsUseCase listMovements) {
         this.createProduct = createProduct;
         this.listProducts = listProducts;
+        this.listLowStockProducts = listLowStockProducts;
         this.getProduct = getProduct;
         this.registerMovement = registerMovement;
         this.listMovements = listMovements;
@@ -38,6 +42,11 @@ public class ProductController {
     @GetMapping
     public List<ProductResponseDTO> list() {
         return listProducts.execute().stream().map(ProductResponseDTO::from).toList();
+    }
+
+    @GetMapping("/low-stock")
+    public List<ProductResponseDTO> listLowStock() {
+        return listLowStockProducts.execute().stream().map(ProductResponseDTO::from).toList();
     }
 
     @GetMapping("/{productId}")
