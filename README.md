@@ -84,7 +84,7 @@ Each product defines a minimum stock threshold.
 The system:
 - Continuously evaluates current stock against this threshold
 - Flags products that fall below the minimum
-- Generates reorder suggestions using a defined policy (e.g. target stock level)
+- Generates a reorder suggestion only when current stock is below the minimum; the target is the configured minimum and the suggested quantity is `minStock - currentStock`
 - Reorder logic is:
 - Deterministic
 - Centralized

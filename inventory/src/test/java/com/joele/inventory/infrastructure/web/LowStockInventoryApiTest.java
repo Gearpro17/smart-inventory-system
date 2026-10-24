@@ -32,6 +32,7 @@ class LowStockInventoryApiTest {
 
         List<ProductResponseDTO> inventory = controller.list();
         List<ProductResponseDTO> lowStock = controller.listLowStock();
+        var suggestions = controller.reorderSuggestions();
 
         assertEquals(3, inventory.size());
         assertTrue(inventory.stream().filter(p -> p.id().equals("below-minimum")).findFirst().orElseThrow().lowStock());
@@ -41,5 +42,9 @@ class LowStockInventoryApiTest {
         assertEquals(2, lowStock.getFirst().currentStock());
         assertEquals(5, lowStock.getFirst().minStock());
         assertTrue(lowStock.getFirst().lowStock());
+        assertEquals(1, suggestions.size());
+        assertEquals("below-minimum", suggestions.getFirst().productId());
+        assertEquals(3, suggestions.getFirst().suggestedQuantity());
+        assertEquals(5, suggestions.getFirst().targetStock());
     }
 }
