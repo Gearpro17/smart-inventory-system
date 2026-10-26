@@ -7,17 +7,25 @@ public class Product {
     private final String name;
     private final long currentStock;
     private final long minStock;
+    private final String supplierId;
 
     public Product(String id, String name, long currentStock, long minStock){
+        this(id, name, currentStock, minStock, null);
+    }
+
+    public Product(String id, String name, long currentStock, long minStock, String supplierId){
         if (id == null || id.isEmpty())     throw DomainException.of("Id cannot be empty");
         if (name == null || name.isEmpty()) throw DomainException.of("Product name cannot be empty");
         if (currentStock < 0)               throw DomainException.of("Current stock cannot be less than zero");
         if (minStock < 0)                   throw DomainException.of("Minimum stock cannot be less than zero");
+        if (supplierId != null && supplierId.isBlank()) throw DomainException.of("Supplier ID cannot be blank");
+        if (supplierId != null && supplierId.trim().length() > 100) throw DomainException.of("Supplier ID cannot exceed 100 characters");
 
         this.id = id;
         this.name = name;
         this.currentStock = currentStock;
         this.minStock = minStock;
+        this.supplierId = supplierId == null ? null : supplierId.trim();
     }
 
     // Getters
@@ -25,6 +33,11 @@ public class Product {
     public String getName() {return name;}
     public Long getCurrentStock() {return currentStock;}
     public Long getMinStock() {return minStock;}
+    public String getSupplierId() {return supplierId;}
+
+    public Product withSupplier(String supplierId) {
+        return new Product(id, name, currentStock, minStock, supplierId);
+    }
 
     // Derived Behaviour
     public Product applyMovement(StockMovement movement){
@@ -38,7 +51,8 @@ public class Product {
             this.id,
             this.name,
             updatedStock,
-            this.minStock);
+            this.minStock,
+            this.supplierId);
     }
 
     public boolean isLowStock(){

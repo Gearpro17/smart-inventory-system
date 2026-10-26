@@ -28,6 +28,18 @@ docker compose down
 To also delete the local database volume and its data, run `docker compose down -v`.
 
 The Compose configuration uses development-only default MySQL passwords. Set `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in the shell or an untracked `.env` file before starting if you want to override them.
+
+## Supplier API
+
+Suppliers have client-provided stable IDs and required names. The API supports:
+
+- `POST /suppliers` with `{ "id": "supplier-1", "name": "Acme Supply" }`
+- `GET /suppliers` and `GET /suppliers/{supplierId}`
+- `PUT /suppliers/{supplierId}` with `{ "name": "Acme Wholesale" }`
+- `PUT /products/{productId}/supplier` with `{ "supplierId": "supplier-1" }` to assign or replace a product's supplier
+- `DELETE /products/{productId}/supplier` to remove the association
+
+Product responses include `supplierId` (null when a product has no supplier). For an existing MySQL database running with the production `ddl-auto: validate` setting, apply `inventory/src/main/resources/db/migration/supplier_management_mysql.sql` before starting the updated API. New local Docker databases create/update the schema through the development configuration.
   
 ## Project Goals
   

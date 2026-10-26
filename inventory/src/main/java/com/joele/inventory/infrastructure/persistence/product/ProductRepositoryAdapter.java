@@ -4,18 +4,23 @@ import java.util.Optional;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
+import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.joele.inventory.application.port.ProductRepository;
 import com.joele.inventory.domain.inventory.Product;
 import com.joele.inventory.infrastructure.persistence.repository.SpringDataProductRepository;
+import com.joele.inventory.infrastructure.persistence.supplier.SupplierEntity;
 
 @Repository
 public class ProductRepositoryAdapter implements ProductRepository {
 
     private final SpringDataProductRepository repository;
+    private final EntityManager entityManager;
 
-    public ProductRepositoryAdapter(SpringDataProductRepository repository) {
+    public ProductRepositoryAdapter(SpringDataProductRepository repository, EntityManager entityManager) {
         this.repository = repository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -35,8 +40,11 @@ public class ProductRepositoryAdapter implements ProductRepository {
     }
 
     @Override
+    @Transactional
     public Product save(Product product) {
-        ProductEntity entity = ProductMapper.toEntity(product);
+        var supplier = product.getSupplierId() == null ? null : entityManager.getReference(
+                SupplierEntity.class, product.getSupplierId());
+        ProductEntity entity = ProductMapper.toEntity(product, supplier);
         ProductEntity savedEntity = repository.save(entity);
         return ProductMapper.toDomain(savedEntity);
     }

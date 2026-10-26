@@ -1,6 +1,7 @@
 package com.joele.inventory.infrastructure.web;
 
 import com.joele.inventory.application.usecase.inventory.ProductNotFoundException;
+import com.joele.inventory.application.usecase.supplier.SupplierNotFoundException;
 import com.joele.inventory.common.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -11,8 +12,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
-    @ExceptionHandler(ProductNotFoundException.class)
-    ProblemDetail notFound(ProductNotFoundException exception) {
+    @ExceptionHandler({ProductNotFoundException.class, SupplierNotFoundException.class})
+    ProblemDetail notFound(RuntimeException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
