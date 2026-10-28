@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/suppliers")
 public class SupplierController {
     private final CreateSupplierUseCase createSupplier;

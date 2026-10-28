@@ -28,8 +28,12 @@
   background-color: transparent;
   border: none;
   cursor: pointer;
+  text-decoration: none;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
+
+.dashboard-btn.active { background: #25372c; color: #bde2c8; }
+.dashboard-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 .dashboard-btn:hover {
   box-shadow: 4px 4px 4px rgb(34 34 34 / 0.7);

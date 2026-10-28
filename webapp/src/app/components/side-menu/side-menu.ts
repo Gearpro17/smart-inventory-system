@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-side-menu',
-  imports: [
-    NgOptimizedImage
-  ],
+  imports: [NgOptimizedImage, RouterLink, RouterLinkActive],
   templateUrl: './side-menu.html',
   styleUrl: './side-menu.scss',
 })

@@ -1,0 +1,4 @@
+<section class="page"><div class="page-heading"><div><p class="eyebrow">OPERATIONS</p><h1>Reorder suggestions</h1><p class="muted">Quantities below are calculated by the inventory service.</p></div></div>
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p><div class="panel state" *ngIf="loading">Loading suggestions…</div><div class="panel state" *ngIf="!loading && !error && !suggestions.length">Everything is sufficiently stocked. No reorder suggestions right now.</div>
+  <div class="panel table-wrap" *ngIf="!loading && suggestions.length"><table><thead><tr><th>Product</th><th>Current</th><th>Minimum</th><th>Target</th><th>Suggested order</th></tr></thead><tbody><tr *ngFor="let item of suggestions"><td>{{ item.productName }}<small>{{ item.productId }}</small></td><td>{{ item.currentStock }}</td><td>{{ item.minStock }}</td><td>{{ item.targetStock }}</td><td><strong>{{ item.suggestedQuantity }}</strong></td></tr></tbody></table></div>
+</section>

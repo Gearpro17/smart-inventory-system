@@ -56,3 +56,14 @@ app-side-menu {
   display: block;
   height: 100%;
 }
+
+@media (max-width: 740px) {
+  .container { grid-template-areas: "header" "menu" "content" "footer"; grid-template-columns: 1fr; grid-template-rows: 60px auto minmax(0, 1fr) 28px; }
+  .container div.menu { padding: 10px 12px; border-right: 0; border-bottom: 1px solid #41413e; overflow-x: auto; }
+  .container div.menu .section { display: inline-block; vertical-align: top; margin-right: 14px; }
+  .container div.menu .section-title { display: none; }
+  .container div.menu .section-btns { display: flex; margin: 0; }
+  .container div.menu .dashboard-btn { width: auto; white-space: nowrap; }
+  .container div.menu img { display: none; }
+  .container div.footer { display: none; }
+}
