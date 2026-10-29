@@ -39,7 +39,7 @@ describe('Products', () => {
   });
 
   it('renders product inventory and backend low-stock state', () => {
-    component.products = [{ id: 'coffee', name: 'Coffee', currentStock: 2, minStock: 5, lowStock: true, supplierId: null }];
+    component.products = [{ id: 'coffee', name: 'Coffee', currentStock: 2, minStock: 5, lowStock: true, supplierId: null, stockStatus: 'LOW' }];
     expect(component.products[0].lowStock).toBe(true);
     expect(component.products[0].currentStock).toBe(2);
   });

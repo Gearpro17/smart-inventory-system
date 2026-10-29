@@ -3,17 +3,18 @@ package com.joele.inventory.domain.inventory;
 import com.joele.inventory.common.DomainException;
 import java.util.Optional;
 
-/**
- * Recommends replenishment only below the product's minimum stock. The target is
- * the configured minimum, so quantity is exactly minimum stock minus current stock.
- */
+/** Recommends replenishment for low-stock products to 150% of minimum stock. */
 public final class ReorderPolicy {
 
     public Optional<ReorderSuggestion> suggestFor(Product product) {
         if (product == null) throw DomainException.of("Product cannot be null");
-        if (!product.isLowStock()) return Optional.empty();
+        if (product.getStockStatus() != StockStatus.LOW) return Optional.empty();
 
-        long targetStock = product.getMinStock();
+        long minStock = product.getMinStock();
+        if (minStock == 0) return Optional.empty();
+
+        long buffer = minStock / 2 + (minStock % 2 == 0 ? 0 : 1);
+        long targetStock = minStock > Long.MAX_VALUE - buffer ? Long.MAX_VALUE : minStock + buffer;
         long suggestedQuantity = targetStock - product.getCurrentStock();
         if (suggestedQuantity <= 0) return Optional.empty();
 

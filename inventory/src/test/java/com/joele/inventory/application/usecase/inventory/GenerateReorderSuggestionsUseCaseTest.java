@@ -17,9 +17,12 @@ class GenerateReorderSuggestionsUseCaseTest {
 
         var suggestions = new GenerateReorderSuggestionsUseCase(products).execute();
 
-        assertEquals(1, suggestions.size());
+        assertEquals(2, suggestions.size());
         assertEquals("low", suggestions.getFirst().productId());
-        assertEquals(3, suggestions.getFirst().suggestedQuantity());
+        assertEquals(8, suggestions.getFirst().targetStock());
+        assertEquals(6, suggestions.getFirst().suggestedQuantity());
+        assertEquals("at", suggestions.get(1).productId());
+        assertEquals(3, suggestions.get(1).suggestedQuantity());
         assertEquals(1, products.findLowStockCalls);
     }
 

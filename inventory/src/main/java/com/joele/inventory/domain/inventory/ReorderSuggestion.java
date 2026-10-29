@@ -2,7 +2,7 @@ package com.joele.inventory.domain.inventory;
 
 import com.joele.inventory.common.DomainException;
 
-/** A recommendation to replenish a product to its configured minimum stock level. */
+/** A recommendation to replenish a low-stock product to its reorder target. */
 public record ReorderSuggestion(
         String productId,
         String productName,

@@ -6,4 +6,5 @@ import java.util.List;
 public interface StockMovementRepository {
     StockMovement save(StockMovement movement);
     List<StockMovement> findByProductId(String productId);
+    List<StockMovement> findAll();
 }

@@ -33,7 +33,7 @@ $mono: 'DM Mono', monospace;
   padding-top: 30px;
   overflow: hidden;
 }
-.container div.content {
+.container .content {
   grid-area: content;
   overflow-y: auto;
   min-height: 0;

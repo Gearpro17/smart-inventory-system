@@ -8,29 +8,32 @@ class ReorderPolicyTest {
     private final ReorderPolicy policy = new ReorderPolicy();
 
     @Test
-    void suggestsExactlyEnoughToReachMinimumWhenBelowMinimum() {
+    void suggestsExactlyEnoughToReachTargetWhenBelowMinimum() {
         var suggestion = policy.suggestFor(new Product("p-1", "Widget", 4, 10)).orElseThrow();
 
         assertEquals("p-1", suggestion.productId());
         assertEquals("Widget", suggestion.productName());
         assertEquals(4, suggestion.currentStock());
         assertEquals(10, suggestion.minStock());
-        assertEquals(10, suggestion.targetStock());
-        assertEquals(6, suggestion.suggestedQuantity());
+        assertEquals(15, suggestion.targetStock());
+        assertEquals(11, suggestion.suggestedQuantity());
     }
 
     @Test
-    void doesNotSuggestAtOrAboveMinimum() {
-        assertTrue(policy.suggestFor(new Product("at", "At minimum", 10, 10)).isEmpty());
-        assertTrue(policy.suggestFor(new Product("above", "Above minimum", 11, 10)).isEmpty());
+    void suggestsAtMinimumAndDoesNotSuggestForHealthyStock() {
+        var atMinimum = policy.suggestFor(new Product("at", "At minimum", 10, 10)).orElseThrow();
+        assertEquals(15, atMinimum.targetStock());
+        assertEquals(5, atMinimum.suggestedQuantity());
+        assertTrue(policy.suggestFor(new Product("target", "At reorder target", 15, 10)).isEmpty());
+        assertTrue(policy.suggestFor(new Product("above", "Above reorder target", 16, 10)).isEmpty());
     }
 
     @Test
-    void zeroStockSuggestsTheFullMinimumWhenMinimumIsPositive() {
+    void zeroStockSuggestsTheFullReorderTargetWhenMinimumIsPositive() {
         var suggestion = policy.suggestFor(new Product("empty", "Empty", 0, 5)).orElseThrow();
 
-        assertEquals(5, suggestion.targetStock());
-        assertEquals(5, suggestion.suggestedQuantity());
+        assertEquals(8, suggestion.targetStock());
+        assertEquals(8, suggestion.suggestedQuantity());
     }
 
     @Test

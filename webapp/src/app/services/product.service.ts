@@ -9,6 +9,7 @@ export interface Product {
   minStock: number;
   lowStock: boolean;
   supplierId: string | null;
+  stockStatus: 'HEALTHY' | 'APPROACHING_MINIMUM' | 'LOW';
 }
 
 export type MovementType = 'IN' | 'OUT';
@@ -59,6 +60,10 @@ export class ProductService {
 
   listMovements(productId: string): Observable<StockMovement[]> {
     return this.http.get<StockMovement[]>(`${this.baseUrl}/products/${encodeURIComponent(productId)}/movements`);
+  }
+
+  listAllMovements(): Observable<StockMovement[]> {
+    return this.http.get<StockMovement[]>(`${this.baseUrl}/movements`);
   }
 
   registerMovement(productId: string, type: MovementType, quantity: number): Observable<StockMovement> {

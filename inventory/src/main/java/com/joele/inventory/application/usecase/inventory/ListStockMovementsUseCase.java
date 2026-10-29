@@ -19,4 +19,8 @@ public class ListStockMovementsUseCase {
         getProduct.execute(productId);
         return movements.findByProductId(productId);
     }
+
+    public List<StockMovement> executeAll() {
+        return movements.findAll();
+    }
 }

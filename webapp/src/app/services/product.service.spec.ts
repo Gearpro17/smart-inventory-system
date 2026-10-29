@@ -24,8 +24,8 @@ describe('ProductService', () => {
     service.listProducts().subscribe(value => result = value);
     const request = http.expectOne('http://inventory.test/products');
     expect(request.request.method).toBe('GET');
-    request.flush([{ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null }]);
-    expect(result).toEqual([{ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null }]);
+    request.flush([{ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null, stockStatus: 'LOW' }]);
+    expect(result).toEqual([{ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null, stockStatus: 'LOW' }]);
   });
 
   it('posts stock movement input without client-side inventory calculations', () => {
@@ -34,6 +34,13 @@ describe('ProductService', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ type: 'OUT', quantity: 2 });
     request.flush({ id: 1, productId: 'tea/large', type: 'OUT', quantity: 2, timestamp: '2026-10-28T12:00:00' });
+  });
+
+  it('loads recent movements across all products when no product filter is selected', () => {
+    service.listAllMovements().subscribe();
+    const request = http.expectOne('http://inventory.test/movements');
+    expect(request.request.method).toBe('GET');
+    request.flush([]);
   });
 
   it('loads backend-calculated reorder suggestions', () => {
@@ -62,12 +69,12 @@ describe('ProductService', () => {
     const assign = http.expectOne('http://inventory.test/products/tea/supplier');
     expect(assign.request.method).toBe('PUT');
     expect(assign.request.body).toEqual({ supplierId: 'north' });
-    assign.flush({ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: 'north' });
+    assign.flush({ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: 'north', stockStatus: 'LOW' });
 
     service.removeSupplier('tea').subscribe();
     const remove = http.expectOne('http://inventory.test/products/tea/supplier');
     expect(remove.request.method).toBe('DELETE');
-    remove.flush({ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null });
+    remove.flush({ id: 'tea', name: 'Tea', currentStock: 4, minStock: 8, lowStock: true, supplierId: null, stockStatus: 'LOW' });
   });
 
   it('loads low-stock products and extracts backend problem details', () => {

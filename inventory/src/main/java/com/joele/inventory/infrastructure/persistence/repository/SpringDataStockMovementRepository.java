@@ -6,4 +6,5 @@ import com.joele.inventory.infrastructure.persistence.stockmovement.StockMovemen
 
 public interface SpringDataStockMovementRepository extends JpaRepository<StockMovementEntity, Long> {
     java.util.List<StockMovementEntity> findByProductIdOrderByTimestampDescIdDesc(String productId);
+    java.util.List<StockMovementEntity> findAllByOrderByTimestampDescIdDesc();
 }

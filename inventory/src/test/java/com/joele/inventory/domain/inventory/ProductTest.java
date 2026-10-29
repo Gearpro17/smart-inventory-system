@@ -1,6 +1,7 @@
 package com.joele.inventory.domain.inventory;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +61,13 @@ public class ProductTest {
             "Product 1",
             10,
             5);
+    }
+
+    @Test
+    void stockAtMinimumIsLowAndStockWithinFiftyPercentAboveIsApproaching() {
+        assertEquals(StockStatus.LOW, new Product("at", "At minimum", 100, 100).getStockStatus());
+        assertEquals(StockStatus.APPROACHING_MINIMUM, new Product("near", "Near minimum", 150, 100).getStockStatus());
+        assertEquals(StockStatus.HEALTHY, new Product("healthy", "Healthy", 151, 100).getStockStatus());
     }
 
     @Test

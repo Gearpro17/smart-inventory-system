@@ -56,7 +56,17 @@ public class Product {
     }
 
     public boolean isLowStock(){
-        return this.currentStock < this.minStock;
+        return this.currentStock <= this.minStock;
+    }
+
+    public StockStatus getStockStatus() {
+        if (isLowStock()) return StockStatus.LOW;
+
+        long distanceAboveMinimum = currentStock - minStock;
+        long approachRange = minStock / 2;
+        return distanceAboveMinimum <= approachRange
+                ? StockStatus.APPROACHING_MINIMUM
+                : StockStatus.HEALTHY;
     }
 
     public boolean isOutOfStock(){

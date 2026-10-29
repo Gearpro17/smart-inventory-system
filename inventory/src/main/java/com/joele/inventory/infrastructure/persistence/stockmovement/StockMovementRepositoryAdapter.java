@@ -28,4 +28,10 @@ public class StockMovementRepositoryAdapter implements StockMovementRepository {
                 .map(StockMovementMapper::toDomain).toList();
     }
 
+    @Override
+    public List<StockMovement> findAll() {
+        return repository.findAllByOrderByTimestampDescIdDesc().stream()
+                .map(StockMovementMapper::toDomain).toList();
+    }
+
 }

@@ -25,7 +25,7 @@ class LowStockInventoryApiTest {
     private ProductController controller;
 
     @Test
-    void inventoryEndpointsReportStockAndOnlyReturnProductsBelowMinimum() {
+    void inventoryEndpointsReportStockAndReturnProductsAtOrBelowMinimum() {
         products.save(new Product("above-minimum", "Above minimum", 8, 5));
         products.save(new Product("at-minimum", "At minimum", 5, 5));
         products.save(new Product("below-minimum", "Below minimum", 2, 5));
@@ -36,15 +36,32 @@ class LowStockInventoryApiTest {
 
         assertEquals(3, inventory.size());
         assertTrue(inventory.stream().filter(p -> p.id().equals("below-minimum")).findFirst().orElseThrow().lowStock());
-        assertFalse(inventory.stream().filter(p -> p.id().equals("at-minimum")).findFirst().orElseThrow().lowStock());
+        assertTrue(inventory.stream().filter(p -> p.id().equals("at-minimum")).findFirst().orElseThrow().lowStock());
         assertFalse(inventory.stream().filter(p -> p.id().equals("above-minimum")).findFirst().orElseThrow().lowStock());
-        assertEquals(List.of("below-minimum"), lowStock.stream().map(ProductResponseDTO::id).toList());
-        assertEquals(2, lowStock.getFirst().currentStock());
-        assertEquals(5, lowStock.getFirst().minStock());
-        assertTrue(lowStock.getFirst().lowStock());
-        assertEquals(1, suggestions.size());
-        assertEquals("below-minimum", suggestions.getFirst().productId());
-        assertEquals(3, suggestions.getFirst().suggestedQuantity());
-        assertEquals(5, suggestions.getFirst().targetStock());
+        assertEquals(List.of("at-minimum", "below-minimum"), lowStock.stream().map(ProductResponseDTO::id).toList());
+        ProductResponseDTO atMinimum = lowStock.stream()
+                .filter(product -> product.id().equals("at-minimum"))
+                .findFirst().orElseThrow();
+        ProductResponseDTO belowMinimum = lowStock.stream()
+                .filter(product -> product.id().equals("below-minimum"))
+                .findFirst().orElseThrow();
+        assertEquals(5, atMinimum.currentStock());
+        assertTrue(atMinimum.lowStock());
+        assertEquals("LOW", atMinimum.stockStatus().name());
+        assertEquals(2, belowMinimum.currentStock());
+        assertEquals(5, belowMinimum.minStock());
+        assertTrue(belowMinimum.lowStock());
+        assertEquals("LOW", belowMinimum.stockStatus().name());
+        assertEquals(2, suggestions.size());
+        var atMinimumSuggestion = suggestions.stream()
+                .filter(suggestion -> suggestion.productId().equals("at-minimum"))
+                .findFirst().orElseThrow();
+        var belowMinimumSuggestion = suggestions.stream()
+                .filter(suggestion -> suggestion.productId().equals("below-minimum"))
+                .findFirst().orElseThrow();
+        assertEquals(8, atMinimumSuggestion.targetStock());
+        assertEquals(3, atMinimumSuggestion.suggestedQuantity());
+        assertEquals(8, belowMinimumSuggestion.targetStock());
+        assertEquals(6, belowMinimumSuggestion.suggestedQuantity());
     }
 }

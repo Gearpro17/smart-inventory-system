@@ -9,9 +9,11 @@ import com.joele.inventory.application.usecase.inventory.ListLowStockProductsUse
 import com.joele.inventory.application.usecase.inventory.ListProductsUseCase;
 import com.joele.inventory.application.usecase.inventory.ListStockMovementsUseCase;
 import com.joele.inventory.application.usecase.inventory.RegisterStockMovementUseCase;
+import com.joele.inventory.common.enums.MovementType;
 import com.joele.inventory.domain.inventory.Product;
 import com.joele.inventory.domain.inventory.StockMovement;
 import com.joele.inventory.infrastructure.web.controller.ProductController;
+import com.joele.inventory.infrastructure.web.controller.StockMovementController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,15 +36,16 @@ class ReorderSuggestionsApiTest {
         products = new InMemoryProductRepository();
         movements = new InMemoryStockMovementRepository();
         var getProduct = new GetProductUseCase(products);
+        var listMovements = new ListStockMovementsUseCase(getProduct, movements);
         var controller = new ProductController(
                 new CreateNewProductUseCase(products),
                 new ListProductsUseCase(products),
                 new ListLowStockProductsUseCase(products),
                 getProduct,
                 new RegisterStockMovementUseCase(products, movements),
-                new ListStockMovementsUseCase(getProduct, movements),
+                listMovements,
                 new GenerateReorderSuggestionsUseCase(products));
-        mvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mvc = MockMvcBuilders.standaloneSetup(controller, new StockMovementController(listMovements)).build();
     }
 
     @Test
@@ -55,7 +58,19 @@ class ReorderSuggestionsApiTest {
                 .andExpect(jsonPath("$[0].productName").value("Widget"))
                 .andExpect(jsonPath("$[0].currentStock").value(2))
                 .andExpect(jsonPath("$[0].minStock").value(5))
-                .andExpect(jsonPath("$[0].targetStock").value(5))
+                .andExpect(jsonPath("$[0].targetStock").value(8))
+                .andExpect(jsonPath("$[0].suggestedQuantity").value(6));
+    }
+
+    @Test
+    void suggestsPositiveReorderQuantityAtExactlyTheMinimum() throws Exception {
+        products.save(new Product("at-min", "At minimum", 5, 5));
+
+        mvc.perform(get("/products/reorder-suggestions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].currentStock").value(5))
+                .andExpect(jsonPath("$[0].minStock").value(5))
+                .andExpect(jsonPath("$[0].targetStock").value(8))
                 .andExpect(jsonPath("$[0].suggestedQuantity").value(3));
     }
 
@@ -64,6 +79,16 @@ class ReorderSuggestionsApiTest {
         mvc.perform(get("/products/reorder-suggestions"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void returnsRecentMovementsAcrossAllProducts() throws Exception {
+        movements.save(new StockMovement(1L, "p-1", MovementType.IN, 4));
+
+        mvc.perform(get("/movements"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].productId").value("p-1"))
+                .andExpect(jsonPath("$[0].quantity").value(4));
     }
 
     private static class InMemoryProductRepository implements ProductRepository {
@@ -87,6 +112,7 @@ class ReorderSuggestionsApiTest {
         private final List<StockMovement> movements = new ArrayList<>();
 
         @Override public StockMovement save(StockMovement movement) { movements.add(movement); return movement; }
+        @Override public List<StockMovement> findAll() { return List.copyOf(movements); }
         @Override public List<StockMovement> findByProductId(String productId) {
             return movements.stream().filter(movement -> movement.getProductId().equals(productId)).toList();
         }

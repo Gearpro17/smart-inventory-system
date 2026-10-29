@@ -36,6 +36,7 @@ tbody tr:last-child td { border-bottom: 0; }
 td small { display: block; margin-top: 4px; color: #858b86; font-size: 11px; }
 .badge { display: inline-flex; align-items: center; min-height: 24px; border-radius: 999px; padding: 3px 9px; background: #26362c; color: #bde2c8; font-size: 11px; font-weight: 700; }
 .badge-low, .badge-out { background: #422c27; color: #ffc6a9; }
+.badge-warning { background: #44391f; color: #f0d58c; }
 .badge-in { background: #25382c; color: #bde2c8; }
 .text-link, .product-link { color: #acd9ba; text-decoration: none; }
 .text-link:hover, .product-link:hover { text-decoration: underline; }
