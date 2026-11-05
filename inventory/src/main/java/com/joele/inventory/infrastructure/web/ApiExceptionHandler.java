@@ -5,6 +5,8 @@ import com.joele.inventory.application.usecase.supplier.SupplierNotFoundExceptio
 import com.joele.inventory.common.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import com.joele.inventory.infrastructure.security.AuthenticationService;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,6 +14,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(AuthenticationService.InvalidCredentialsException.class)
+    ResponseEntity<ProblemDetail> unauthorized(AuthenticationService.InvalidCredentialsException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exception.getMessage()));
+    }
+
     @ExceptionHandler({ProductNotFoundException.class, SupplierNotFoundException.class})
     ProblemDetail notFound(RuntimeException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());

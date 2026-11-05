@@ -11,7 +11,21 @@ All business decisions such as stock validation, movement rules, and reorder cal
 
 ## Run with Docker
 
-Docker Desktop must be running. From the repository root, start the frontend, backend API, and MySQL database with:
+Docker Desktop must be running. Configure a signing key and first administrator in an untracked `.env` file, then start the frontend, backend API, and MySQL database from the repository root:
+
+```dotenv
+INVENTORY_JWT_SECRET=<base64-encoded random value with at least 32 bytes>
+INVENTORY_BOOTSTRAP_USERNAME=admin
+INVENTORY_BOOTSTRAP_PASSWORD=<password with at least 12 characters>
+```
+
+Generate a signing key without putting it in source control (PowerShell):
+
+```powershell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+The bootstrap account is created as an `ADMIN` only when the user table is empty and both bootstrap values are set. Passwords are stored as BCrypt hashes. Sign in through the web app or call `POST /auth/login` with `{ "username": "admin", "password": "your-password" }` to receive a one-hour bearer token by default. Pass it as `Authorization: Bearer <token>` on API requests. Set `INVENTORY_JWT_EXPIRATION_SECONDS` to change the lifetime and `INVENTORY_ALLOWED_ORIGINS` to configure the comma-separated browser origins allowed to call the API.
 
 ```bash
 docker compose up --build
@@ -28,6 +42,12 @@ docker compose down
 To also delete the local database volume and its data, run `docker compose down -v`.
 
 The Compose configuration uses development-only default MySQL passwords. Set `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in the shell or an untracked `.env` file before starting if you want to override them.
+
+### Authentication and roles
+
+All inventory API operations require a valid bearer token. `GET` operations for products, movements, suppliers, inventory status and reorder suggestions are available to all roles. `INVENTORY_MANAGER` and `ADMIN` can record stock movements, manage suppliers, and assign suppliers. Only `ADMIN` can create products and provision users. `VIEWER` can read inventory. `POST /auth/login` and `GET /actuator/health` are public; `POST /auth/users` requires an administrator and accepts `{ "username": "operator", "password": "at-least-12-characters", "role": "INVENTORY_MANAGER" }`. User creation returns the account's username and role, never a token or password.
+
+For a production MySQL database using `ddl-auto: validate`, apply `inventory/src/main/resources/db/migration/jwt_authentication_mysql.sql` before starting the updated API. Configure `INVENTORY_JWT_SECRET` with a private Base64-encoded random key of at least 32 bytes and keep it out of source control. Missing, malformed, invalid, and expired bearer tokens receive a consistent `401` Problem Details response; authenticated users without the required role receive `403`.
 
 ## Supplier API
 

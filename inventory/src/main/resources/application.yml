@@ -7,3 +7,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+inventory:
+  security:
+    allowed-origins: ${INVENTORY_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
+    jwt:
+      secret: ${INVENTORY_JWT_SECRET:}
+      expiration-seconds: ${INVENTORY_JWT_EXPIRATION_SECONDS:3600}
+    bootstrap:
+      username: ${INVENTORY_BOOTSTRAP_USERNAME:}
+      password: ${INVENTORY_BOOTSTRAP_PASSWORD:}

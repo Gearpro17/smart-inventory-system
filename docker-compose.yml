@@ -26,6 +26,11 @@ services:
       DB_NAME: inventory_management
       DB_USER: inventory
       DB_PASSWORD: ${MYSQL_PASSWORD:-inventory_dev_password}
+      INVENTORY_JWT_SECRET: ${INVENTORY_JWT_SECRET:?Set a random Base64 encoded JWT secret of at least 32 bytes}
+      INVENTORY_JWT_EXPIRATION_SECONDS: ${INVENTORY_JWT_EXPIRATION_SECONDS:-3600}
+      INVENTORY_ALLOWED_ORIGINS: ${INVENTORY_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      INVENTORY_BOOTSTRAP_USERNAME: ${INVENTORY_BOOTSTRAP_USERNAME:?Set an initial administrator username}
+      INVENTORY_BOOTSTRAP_PASSWORD: ${INVENTORY_BOOTSTRAP_PASSWORD:?Set an initial administrator password of at least 12 characters}
     ports:
       - "8080:8080"
     depends_on:

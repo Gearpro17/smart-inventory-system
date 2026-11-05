@@ -1,0 +1,10 @@
+.login-page { min-height: 100%; display: grid; place-items: center; padding: 24px; box-sizing: border-box; color: #e8e8e5; }
+.login-card { width: min(100%, 390px); display: grid; gap: 12px; padding: 32px; box-sizing: border-box; border: 1px solid #343431; border-radius: 12px; background: #1d1d1b; }
+.eyebrow { margin: 0; color: #f59b2a; font: 700 12px 'DM Mono', monospace; letter-spacing: .14em; }
+h1 { margin: 0; font-size: 28px; }
+.intro { margin: 0 0 10px; color: #aaa9a3; }
+label { font-size: 13px; color: #c8c8c2; }
+input { height: 42px; padding: 0 12px; border: 1px solid #454540; border-radius: 6px; background: #141413; color: #f3f3ef; font: inherit; }
+button { height: 44px; margin-top: 8px; border: 0; border-radius: 6px; background: #f59b2a; color: #20180d; font: 700 14px 'DM Mono', monospace; cursor: pointer; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.error { margin: 0; color: #ff9388; font-size: 13px; }

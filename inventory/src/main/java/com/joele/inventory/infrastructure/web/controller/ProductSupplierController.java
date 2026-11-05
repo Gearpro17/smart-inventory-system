@@ -7,7 +7,6 @@ import com.joele.inventory.application.usecase.supplier.RemoveSupplierFromProduc
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/products/{productId}/supplier")
 public class ProductSupplierController {
     private final AssignSupplierToProductUseCase assignSupplier;

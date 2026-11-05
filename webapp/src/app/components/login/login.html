@@ -1,1 +1,15 @@
-<p>login works!</p>
+<section class="login-page">
+  <form class="login-card" (ngSubmit)="submit()">
+    <p class="eyebrow">STOCKFLOW</p>
+    <h1>Sign in</h1>
+    <p class="intro">Use your inventory account to continue.</p>
+    <label for="username">Username</label>
+    <input id="username" name="username" [(ngModel)]="username" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" [(ngModel)]="password" autocomplete="current-password" required>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    <button type="submit" [disabled]="submitting() || !username.trim() || !password">
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+</section>

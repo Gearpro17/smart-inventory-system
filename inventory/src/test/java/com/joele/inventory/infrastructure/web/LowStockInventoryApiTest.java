@@ -8,6 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+import java.util.Base64;
 
 import java.util.List;
 
@@ -18,6 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @ActiveProfiles("dev")
 class LowStockInventoryApiTest {
+    @DynamicPropertySource
+    static void securityProperties(DynamicPropertyRegistry properties) {
+        properties.add("inventory.security.jwt.secret", () -> Base64.getEncoder().encodeToString(new byte[32]));
+    }
+
     @Autowired
     private ProductRepository products;
 

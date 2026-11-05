@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/movements")
 public class StockMovementController {
     private final ListStockMovementsUseCase listMovements;
