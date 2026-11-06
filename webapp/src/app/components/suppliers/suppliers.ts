@@ -22,12 +22,11 @@ export class Suppliers implements OnInit {
   error = '';
   notice = '';
   form = { id: '', name: '', contactName: '', email: '', phone: '', address: '', leadTimeDays: null as number | null, taxNumber: '' };
-  editingId = '';
   editingSupplier: Supplier | null = null;
   assignments: Record<string, string> = {};
 
   ngOnInit(): void { this.load(); }
-  edit(supplier: Supplier): void { this.editingId = supplier.id; this.editingSupplier = { ...supplier }; }
+  edit(supplier: Supplier): void { this.error = ''; this.editingSupplier = { ...supplier }; }
   load(): void {
     this.loading = true; this.error = '';
     this.service.listSuppliers().subscribe({ next: values => { this.suppliers = values; this.loading = false; this.changeDetector.markForCheck(); }, error: err => { this.error = apiErrorMessage(err); this.loading = false; this.changeDetector.markForCheck(); } });
@@ -38,12 +37,13 @@ export class Suppliers implements OnInit {
     this.saving = true; this.error = ''; this.notice = '';
     this.service.createSupplier({ ...this.form, id: this.form.id.trim(), name: this.form.name.trim() }).subscribe({ next: () => { this.saving = false; this.form = { id: '', name: '', contactName: '', email: '', phone: '', address: '', leadTimeDays: null, taxNumber: '' }; this.notice = 'Supplier created.'; this.changeDetector.markForCheck(); this.load(); }, error: err => { this.saving = false; this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); } });
   }
-  saveEdit(supplier: Supplier): void {
+  saveEdit(): void {
     const editedSupplier = this.editingSupplier;
     if (!editedSupplier?.name.trim()) return;
     this.saving = true; this.error = '';
-    this.service.updateSupplier(supplier.id, editedSupplier).subscribe({ next: () => { this.saving = false; this.editingId = ''; this.editingSupplier = null; this.notice = 'Supplier updated.'; this.changeDetector.markForCheck(); this.load(); }, error: err => { this.saving = false; this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); } });
+    this.service.updateSupplier(editedSupplier.id, editedSupplier).subscribe({ next: () => { this.saving = false; this.editingSupplier = null; this.notice = 'Supplier updated.'; this.changeDetector.markForCheck(); this.load(); }, error: err => { this.saving = false; this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); } });
   }
+  cancelEdit(): void { this.editingSupplier = null; }
   assign(product: Product): void {
     const supplierId = this.assignments[product.id];
     if (!supplierId) { this.remove(product); return; }

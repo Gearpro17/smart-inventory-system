@@ -1,0 +1,35 @@
+:host { display: block; }
+
+.edit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 68%);
+}
+
+.edit-dialog {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  margin: 0;
+  border-color: #454944;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+}
+
+.edit-dialog .section-heading { align-items: flex-start; margin-bottom: 22px; }
+.edit-dialog .section-heading h2 { margin-bottom: 6px; }
+.edit-dialog .section-heading p { margin: 0; }
+.edit-dialog input,
+.edit-dialog textarea { width: 100%; min-width: 0; font: inherit; }
+.edit-dialog textarea { min-height: 90px; padding: 10px 11px; border: 1px solid #444843; border-radius: 8px; background: #171816; color: #edf0ec; resize: vertical; }
+.edit-dialog textarea:focus { border-color: #7cbf98; outline: none; box-shadow: 0 0 0 3px rgb(124 191 152 / 13%); }
+.edit-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+@media (max-width: 520px) {
+  .edit-overlay { padding: 12px; }
+  .edit-dialog { max-height: calc(100vh - 24px); }
+  .edit-actions { flex-direction: column-reverse; }
+}
