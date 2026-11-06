@@ -19,5 +19,12 @@ public class SupplierEntity {
     @Column(name = "NAME", nullable = false, length = 150)
     private String name;
 
+    @Column(name = "CONTACT_NAME", length = 150) private String contactName;
+    @Column(name = "EMAIL", length = 254) private String email;
+    @Column(name = "PHONE", length = 50) private String phone;
+    @Column(name = "ADDRESS", length = 500) private String address;
+    @Column(name = "LEAD_TIME_DAYS") private Integer leadTimeDays;
+    @Column(name = "TAX_NUMBER", length = 100) private String taxNumber;
+
     protected SupplierEntity() {}
 }

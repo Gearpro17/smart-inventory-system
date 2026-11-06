@@ -14,11 +14,19 @@ public class RegisterStockMovementUseCase {
 
     private final ProductRepository productRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final com.joele.inventory.application.usecase.supplier.SupplierOrderService supplierOrders;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public RegisterStockMovementUseCase(ProductRepository productRepository,
-                                        StockMovementRepository stockMovementRepository) {
+                                        StockMovementRepository stockMovementRepository,
+                                        com.joele.inventory.application.usecase.supplier.SupplierOrderService supplierOrders) {
         this.productRepository = productRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.supplierOrders = supplierOrders;
+    }
+
+    public RegisterStockMovementUseCase(ProductRepository productRepository, StockMovementRepository stockMovementRepository) {
+        this(productRepository, stockMovementRepository, null);
     }
 
     @Transactional
@@ -48,6 +56,11 @@ public class RegisterStockMovementUseCase {
         // Persist changes
         StockMovement savedMovement = stockMovementRepository.save(movement);
         productRepository.save(updatedProduct);
+        if (command.supplierOrderId() != null) {
+            if (supplierOrders == null) throw new IllegalStateException("Supplier order processing is unavailable");
+            if (command.type() != com.joele.inventory.common.enums.MovementType.IN) throw new IllegalArgumentException("Supplier orders require an inbound movement");
+            supplierOrders.completeFromMovement(command.supplierOrderId(), command.productId(), command.quantity(), savedMovement.getId());
+        }
         return savedMovement;
     }
 }

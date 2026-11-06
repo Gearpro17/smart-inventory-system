@@ -17,6 +17,7 @@ export class Movements implements OnInit {
   historyProductId = '';
   type: MovementType = 'IN';
   quantity: number | null = null;
+  supplierOrderId: number | null = null;
   loading = true;
   saving = false;
   error = '';
@@ -27,7 +28,10 @@ export class Movements implements OnInit {
     const requestedProductId = params.get('productId');
     const requestedType = params.get('type');
     const requestedQuantity = Number(params.get('quantity'));
-    if (requestedType === 'IN' || requestedType === 'OUT') this.type = requestedType;
+    const requestedOrderId = Number(params.get('supplierOrderId'));
+    if (Number.isInteger(requestedOrderId) && requestedOrderId > 0) this.supplierOrderId = requestedOrderId;
+    if (this.supplierOrderId !== null) this.type = 'IN';
+    else if (requestedType === 'IN' || requestedType === 'OUT') this.type = requestedType;
     if (Number.isInteger(requestedQuantity) && requestedQuantity > 0) this.quantity = requestedQuantity;
 
     this.service.listProducts().subscribe({
@@ -55,8 +59,8 @@ export class Movements implements OnInit {
   submit(): void {
     if (!this.productId || this.quantity === null || !Number.isInteger(this.quantity) || this.quantity <= 0) return;
     this.saving = true; this.error = ''; this.notice = '';
-    this.service.registerMovement(this.productId, this.type, this.quantity).subscribe({
-      next: () => { this.saving = false; this.notice = `${this.type === 'IN' ? 'Inbound' : 'Outbound'} movement recorded.`; this.quantity = null; this.changeDetector.markForCheck(); this.loadMovements(); this.service.listProducts().subscribe({ next: products => { this.products = products; this.changeDetector.markForCheck(); }, error: err => { this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); } }); },
+    this.service.registerMovement(this.productId, this.type, this.quantity, this.supplierOrderId).subscribe({
+      next: () => { this.saving = false; this.notice = this.supplierOrderId !== null ? `Inbound movement recorded and supplier order #${this.supplierOrderId} completed.` : `${this.type === 'IN' ? 'Inbound' : 'Outbound'} movement recorded.`; this.supplierOrderId = null; this.quantity = null; this.changeDetector.markForCheck(); this.loadMovements(); this.service.listProducts().subscribe({ next: products => { this.products = products; this.changeDetector.markForCheck(); }, error: err => { this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); } }); },
       error: err => { this.saving = false; this.error = apiErrorMessage(err); this.changeDetector.markForCheck(); },
     });
   }

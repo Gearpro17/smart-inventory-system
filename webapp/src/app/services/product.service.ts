@@ -25,7 +25,15 @@ export interface StockMovement {
 export interface Supplier {
   id: string;
   name: string;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  leadTimeDays: number | null;
+  taxNumber: string | null;
 }
+
+export interface SupplierOrder { id: number; productId: string; productName: string; supplierId: string; supplierName: string; quantity: number; orderDate: string; status: 'PENDING' | 'COMPLETED' | 'CANCELLED'; movementId: number | null; }
 
 export interface ReorderSuggestion {
   productId: string;
@@ -66,10 +74,10 @@ export class ProductService {
     return this.http.get<StockMovement[]>(`${this.baseUrl}/movements`);
   }
 
-  registerMovement(productId: string, type: MovementType, quantity: number): Observable<StockMovement> {
+  registerMovement(productId: string, type: MovementType, quantity: number, supplierOrderId?: number | null): Observable<StockMovement> {
     return this.http.post<StockMovement>(
       `${this.baseUrl}/products/${encodeURIComponent(productId)}/movements`,
-      { type, quantity },
+      { type, quantity, supplierOrderId: supplierOrderId ?? null },
     );
   }
 
@@ -81,8 +89,8 @@ export class ProductService {
     return this.http.post<Supplier>(`${this.baseUrl}/suppliers`, supplier);
   }
 
-  updateSupplier(id: string, name: string): Observable<Supplier> {
-    return this.http.put<Supplier>(`${this.baseUrl}/suppliers/${encodeURIComponent(id)}`, { name });
+  updateSupplier(id: string, supplier: Omit<Supplier, 'id'>): Observable<Supplier> {
+    return this.http.put<Supplier>(`${this.baseUrl}/suppliers/${encodeURIComponent(id)}`, supplier);
   }
 
   assignSupplier(productId: string, supplierId: string): Observable<Product> {
@@ -103,6 +111,10 @@ export class ProductService {
   listReorderSuggestions(): Observable<ReorderSuggestion[]> {
     return this.http.get<ReorderSuggestion[]>(`${this.baseUrl}/products/reorder-suggestions`);
   }
+
+  listSupplierOrders(): Observable<SupplierOrder[]> { return this.http.get<SupplierOrder[]>(`${this.baseUrl}/supplier-orders`); }
+  createSupplierOrder(productId: string, quantity: number): Observable<SupplierOrder> { return this.http.post<SupplierOrder>(`${this.baseUrl}/supplier-orders`, { productId, quantity }); }
+  cancelSupplierOrder(id: number): Observable<SupplierOrder> { return this.http.post<SupplierOrder>(`${this.baseUrl}/supplier-orders/${id}/cancel`, {}); }
 }
 
 export function apiErrorMessage(error: unknown): string {

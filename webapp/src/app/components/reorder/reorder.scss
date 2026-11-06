@@ -1,1 +1,4 @@
 :host { display: block; }
+.filter-row { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.filter-row select, .filter-row input { min-width: 9rem; }
+td small { display: block; }

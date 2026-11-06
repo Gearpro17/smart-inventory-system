@@ -53,15 +53,15 @@ For a production MySQL database using `ddl-auto: validate`, apply `inventory/src
 
 ## Supplier API
 
-Suppliers have client-provided stable IDs and required names. The API supports:
+Suppliers have client-provided stable IDs and required names. Contact name, email, phone, address, lead time in days, and tax number are optional. The API supports:
 
-- `POST /suppliers` with `{ "id": "supplier-1", "name": "Acme Supply" }`
+- `POST /suppliers` with `{ "id": "supplier-1", "name": "Acme Supply", "contactName": "Alex", "email": "alex@example.com", "phone": "555-0100", "address": "1 Main St", "leadTimeDays": 5, "taxNumber": "TAX-1" }`
 - `GET /suppliers` and `GET /suppliers/{supplierId}`
-- `PUT /suppliers/{supplierId}` with `{ "name": "Acme Wholesale" }`
+- `PUT /suppliers/{supplierId}` with the same supplier fields as creation (ID remains stable)
 - `PUT /products/{productId}/supplier` with `{ "supplierId": "supplier-1" }` to assign or replace a product's supplier
 - `DELETE /products/{productId}/supplier` to remove the association
 
-Product responses include `supplierId` (null when a product has no supplier). For an existing MySQL database running with the production `ddl-auto: validate` setting, apply `inventory/src/main/resources/db/migration/supplier_management_mysql.sql` before starting the updated API. New local Docker databases create/update the schema through the development configuration.
+Product responses include `supplierId` (null when a product has no supplier). Restock suggestions now create pending supplier orders; inventory changes only after the matching inbound movement is recorded. `GET /supplier-orders` returns order history, `POST /supplier-orders` accepts `{ "productId": "product-1", "quantity": 10 }`, and `POST /supplier-orders/{id}/cancel` cancels a pending order. Include `supplierOrderId` in the inbound movement request to complete its order. For an existing MySQL database running with production `ddl-auto: validate`, apply `supplier_management_mysql.sql` and then `restock_supplier_details_mysql.sql` before starting the updated API. New local databases create/update the schema through the development configuration.
   
 ## Project Goals
   

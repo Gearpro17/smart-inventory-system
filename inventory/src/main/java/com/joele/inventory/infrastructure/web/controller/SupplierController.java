@@ -31,7 +31,7 @@ public class SupplierController {
     @PostMapping
     public ResponseEntity<SupplierResponseDTO> create(@RequestBody CreateSupplierRequestDTO request) {
         if (request == null) throw new IllegalArgumentException("Supplier ID and name are required");
-        var supplier = createSupplier.execute(request.id(), request.name());
+        var supplier = createSupplier.execute(request.id(), request.name(), request.contactName(), request.email(), request.phone(), request.address(), request.leadTimeDays(), request.taxNumber());
         return ResponseEntity.status(HttpStatus.CREATED).body(SupplierResponseDTO.from(supplier));
     }
 
@@ -48,6 +48,6 @@ public class SupplierController {
     @PutMapping("/{supplierId}")
     public SupplierResponseDTO update(@PathVariable String supplierId, @RequestBody UpdateSupplierRequestDTO request) {
         if (request == null) throw new IllegalArgumentException("Supplier name is required");
-        return SupplierResponseDTO.from(updateSupplier.execute(supplierId, request.name()));
+        return SupplierResponseDTO.from(updateSupplier.execute(supplierId, request.name(), request.contactName(), request.email(), request.phone(), request.address(), request.leadTimeDays(), request.taxNumber()));
     }
 }

@@ -68,7 +68,7 @@ public class ProductController {
     public ResponseEntity<StockMovementResponseDTO> registerMovement(@PathVariable String productId,
                                                                       @RequestBody StockMovementRequestDTO request) {
         if (request == null) throw new IllegalArgumentException("Request body is required");
-        var movement = registerMovement.execute(new RegisterStockMovementCommand(productId, request.type(), request.quantity()));
+        var movement = registerMovement.execute(new RegisterStockMovementCommand(productId, request.type(), request.quantity(), request.supplierOrderId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(StockMovementResponseDTO.from(movement));
     }
 

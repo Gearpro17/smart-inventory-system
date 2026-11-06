@@ -56,6 +56,8 @@ public class SecurityConfiguration {
         if (path.equals("/suppliers") || path.startsWith("/suppliers/")) return method.equals("GET") ? "SUPPLIER_READ" : "SUPPLIER_MANAGE";
         if (path.endsWith("/supplier") && path.startsWith("/products/")) return "SUPPLIER_MANAGE";
         if (path.equals("/products/reorder-suggestions")) return "REORDER_READ";
+        if (path.equals("/supplier-orders")) return method.equals("GET") ? "REORDER_READ" : "SUPPLIER_MANAGE";
+        if (path.startsWith("/supplier-orders/")) return "SUPPLIER_MANAGE";
         if (path.startsWith("/products")) return "INVENTORY_READ";
         return null;
     }
