@@ -1,193 +1,196 @@
 # Smart Inventory & Reorder System
-![Preview of my app](webapp/public/inventory_management_concept_art.png)
 
-## Overview
+Smart Inventory is a web application for managing products, stock movements, suppliers, and supplier restock orders. Business rules and authorization are enforced by a Spring Boot REST API; the Angular app is its user interface.
 
-The Smart Inventory & Reorder System is a web-based backend-driven application designed to manage product inventory, track stock movements, and proactively identify reorder needs based on configurable business rules.
-  
-The project’s primary objective is not to build a feature-heavy UI, but to demonstrate correct backend architecture, strong separation of concerns, and centralized business logic, following Clean Architecture and SOLID principles.
-  
-All business decisions such as stock validation, movement rules, and reorder calculations are enforced exclusively in the backend, ensuring consistency, correctness, and testability regardless of the frontend consumer.
+## Feature status
 
-## Run with Docker
+### Implemented
 
-Docker Desktop must be running. Configure a signing key and first administrator in an untracked `.env` file, then start the frontend, backend API, and MySQL database from the repository root:
+- Product directory and creation, current stock, minimum stock, and stock health (`HEALTHY`, `APPROACHING_MINIMUM`, `LOW`).
+- Inbound and outbound movements. Movement validation prevents stock from dropping below zero.
+- Low-stock and reorder suggestions. Products at or below minimum are low; suggestions target `ceil(1.5 × minimum)` units. A zero minimum produces no suggestion.
+- Supplier directory, contact and delivery details, and product-to-supplier assignment.
+- Supplier orders with `PENDING`, `CANCELLED`, and `COMPLETED` statuses. Placing an order does not change stock. The order is completed only when its matching inbound movement is recorded.
+- JWT sign-in, user management, and persisted role permissions. Admin has all permissions and its permissions are fixed. The last admin cannot be deleted, and users cannot delete themselves.
+- Dashboard, product, movement, supplier, reorder, and Access & roles views.
 
-```dotenv
-INVENTORY_JWT_SECRET=<base64-encoded random value with at least 32 bytes>
-INVENTORY_BOOTSTRAP_USERNAME=admin
-INVENTORY_BOOTSTRAP_PASSWORD=<password with at least 12 characters>
-```
+### In progress
 
-Generate a signing key without putting it in source control (PowerShell):
+- No application feature issue in the Smart Inventory project was marked In Progress at review time.
+
+### Planned
+
+- Future work is tracked in the Linear project board and is not described here as available. The list above describes implemented behavior only.
+
+## Architecture
+
+The backend is organized into domain rules, application use cases, and Spring infrastructure for HTTP, persistence, and security. It uses Spring Boot, Spring Data JPA, and MySQL in Docker; local development and automated backend tests use an in-memory H2 database. The frontend is Angular 21 with server-side rendering and communicates with the API at `http://localhost:8080` by default.
+
+## Prerequisites
+
+- Java 21 for local backend work. The Maven wrapper is included.
+- Node.js 22 and npm for local frontend work (`npm ci` installs the locked dependencies).
+- Docker Desktop with Docker Compose for the containerized setup.
+
+## Run locally
+
+Run the API and frontend in separate terminals. The `dev` profile uses an in-memory H2 database; its data is discarded when the API stops.
+
+### Backend (PowerShell)
+
+From the repository root:
 
 ```powershell
-[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+cd inventory
+$keyBytes = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
+$env:INVENTORY_JWT_SECRET = [Convert]::ToBase64String($keyBytes)
+$env:INVENTORY_BOOTSTRAP_USERNAME = "admin"
+$env:INVENTORY_BOOTSTRAP_PASSWORD = "change-this-local-password"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-The bootstrap account is created as an `ADMIN` only when the user table is empty and both bootstrap values are set. Passwords are stored as BCrypt hashes. Sign in through the web app or call `POST /auth/login` with `{ "username": "admin", "password": "your-password" }` to receive a one-hour bearer token by default. Pass it as `Authorization: Bearer <token>` on API requests. Set `INVENTORY_JWT_EXPIRATION_SECONDS` to change the lifetime and `INVENTORY_ALLOWED_ORIGINS` to configure the comma-separated browser origins allowed to call the API.
+The password must have at least 12 characters. The first administrator is created only if the user table is empty and both bootstrap variables are set. Keep the generated signing key and any real passwords out of source control.
+
+### Frontend
+
+In a second terminal from the repository root:
+
+```powershell
+cd webapp
+npm ci
+npm start
+```
+
+Open <http://localhost:4200>. The API listens on <http://localhost:8080>; `GET /actuator/health` is a public health check.
+
+## Run with Docker Compose
+
+Create an untracked `.env` file in the repository root. Compose requires a JWT secret and initial admin credentials. The MySQL password defaults shown below are for local development only; set your own values if needed.
+
+```dotenv
+INVENTORY_JWT_SECRET=<base64-encoded-random-value-at-least-32-bytes>
+INVENTORY_BOOTSTRAP_USERNAME=admin
+INVENTORY_BOOTSTRAP_PASSWORD=<local-password-at-least-12-characters>
+MYSQL_PASSWORD=<local-mysql-password>
+MYSQL_ROOT_PASSWORD=<local-mysql-root-password>
+```
+
+Generate a signing secret in PowerShell with:
+
+```powershell
+$keyBytes = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
+[Convert]::ToBase64String($keyBytes)
+```
+
+Start the app from the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Open the Angular app at <http://localhost:4200>. The Spring Boot API is available at <http://localhost:8080>. The database data is stored in a named Docker volume and remains available when the containers are stopped.
+The Angular app is at <http://localhost:4200>, the API is at <http://localhost:8080>, and MySQL data is stored in the `mysql_data` volume. To stop the services, press `Ctrl+C` and run `docker compose down`. To also remove the local database volume and its data, run `docker compose down -v`.
 
-To stop the services, press `Ctrl+C` and run:
+To build only the frontend image, run `docker compose build webapp`.
+
+## Configuration
+
+| Variable | Purpose | Default / requirement |
+| --- | --- | --- |
+| `INVENTORY_JWT_SECRET` | Base64 HMAC signing key | Required; decoded value must contain at least 32 bytes |
+| `INVENTORY_JWT_EXPIRATION_SECONDS` | Token lifetime | `3600`; minimum `60` |
+| `INVENTORY_BOOTSTRAP_USERNAME` | Initial admin username | Optional for local API; required by Compose |
+| `INVENTORY_BOOTSTRAP_PASSWORD` | Initial admin password | At least 12 characters; required by Compose |
+| `INVENTORY_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:4200,http://127.0.0.1:4200` |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Docker profile MySQL connection | Compose supplies these; local `dev` profile uses H2 |
+| `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` | MySQL container credentials | Development defaults are in Compose; override for local deployments |
+
+For an existing production MySQL database using `ddl-auto: validate`, apply the migrations in order before deploying the corresponding code: `supplier_management_mysql.sql`, `jwt_authentication_mysql.sql`, `role_permissions_mysql.sql`, and `restock_supplier_details_mysql.sql`. The Docker profile uses `ddl-auto: update`; the local `dev` profile uses `create-drop`.
+
+## Roles and access
+
+All three roles can read inventory, movements, suppliers, and reorder suggestions by default. `INVENTORY_MANAGER` can also record movements and manage suppliers. `ADMIN` has all permissions, including product creation and user management; admin permissions cannot be edited. Admins can change permissions for Inventory Manager and Viewer in Access & roles. API permission checks are enforced on the server.
+
+Only authenticated requests may use protected endpoints. Send the token returned by login as `Authorization: Bearer <accessToken>`. Invalid or missing credentials return `401`; an authenticated user without the required permission receives `403`. Invalid input and domain rule violations return `400` Problem Details; missing products and suppliers return `404`.
+
+## API workflows
+
+Examples use `curl`; replace `<token>` with a token from the login response.
+
+### Sign in and create a product
 
 ```bash
-docker compose down
+curl -X POST http://localhost:8080/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"your-local-password"}'
+
+curl -X POST http://localhost:8080/products/create-product \
+  -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' \
+  -d '{"id":"widget-1","name":"Widget","currentStock":0,"minStock":5}'
 ```
 
-To also delete the local database volume and its data, run `docker compose down -v`.
+### Add and assign a supplier
 
-The Compose configuration uses development-only default MySQL passwords. Set `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` in the shell or an untracked `.env` file before starting if you want to override them.
+```bash
+curl -X POST http://localhost:8080/suppliers \
+  -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' \
+  -d '{"id":"supplier-1","name":"Acme Supply","contactName":"Alex","email":"alex@example.com","phone":"555-0100","address":"1 Main St","leadTimeDays":5,"taxNumber":"TAX-1"}'
 
-### Authentication and roles
+curl -X PUT http://localhost:8080/products/widget-1/supplier \
+  -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' \
+  -d '{"supplierId":"supplier-1"}'
+```
 
-All inventory API operations require a valid bearer token. Default permissions allow all roles to read inventory, movements, suppliers and reorder suggestions; `INVENTORY_MANAGER` and `ADMIN` can record movements and manage suppliers; only `ADMIN` can create products and manage users and roles. These defaults can be changed from the admin-only **Access & roles** screen. Changes are persisted and enforced by the API. Admins can create users with a username, a password of at least 12 characters, and a role, list accounts, and permanently delete accounts after a confirmation prompt. An admin cannot delete their own account or remove user-management access from the `ADMIN` role. Deleted accounts lose access immediately, including through tokens already issued. User endpoints return usernames and roles only.
+Supplier fields other than `id` and `name` are optional. Update a supplier with `PUT /suppliers/{supplierId}` and the same fields (the ID remains stable). Supplier list and detail routes are `GET /suppliers` and `GET /suppliers/{supplierId}`.
 
-`POST /auth/login` and `GET /actuator/health` are public. `POST /auth/users` requires the `USER_MANAGE` permission and accepts `{ "username": "operator", "password": "at-least-12-characters", "role": "INVENTORY_MANAGER" }`.
+### Place and receive a supplier order
 
-For a production MySQL database using `ddl-auto: validate`, apply `inventory/src/main/resources/db/migration/jwt_authentication_mysql.sql` and `inventory/src/main/resources/db/migration/role_permissions_mysql.sql` before starting the updated API. Configure `INVENTORY_JWT_SECRET` with a private Base64-encoded random key of at least 32 bytes and keep it out of source control. Missing, malformed, invalid, and expired bearer tokens receive a consistent `401` Problem Details response; authenticated users without the required permission receive `403`.
+Create an order for a product that has an assigned supplier. This records a `PENDING` supplier order and does not change inventory:
 
-## Supplier API
+```bash
+curl -X POST http://localhost:8080/supplier-orders \
+  -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' \
+  -d '{"productId":"widget-1","quantity":10}'
+```
 
-Suppliers have client-provided stable IDs and required names. Contact name, email, phone, address, lead time in days, and tax number are optional. The API supports:
+List order history with `GET /supplier-orders`. Cancel a pending order with `POST /supplier-orders/{id}/cancel`. To receive it, record the corresponding inbound movement with the order ID returned at creation. The product and quantity must match the order; only then are stock and order status updated:
 
-- `POST /suppliers` with `{ "id": "supplier-1", "name": "Acme Supply", "contactName": "Alex", "email": "alex@example.com", "phone": "555-0100", "address": "1 Main St", "leadTimeDays": 5, "taxNumber": "TAX-1" }`
-- `GET /suppliers` and `GET /suppliers/{supplierId}`
-- `PUT /suppliers/{supplierId}` with the same supplier fields as creation (ID remains stable)
-- `PUT /products/{productId}/supplier` with `{ "supplierId": "supplier-1" }` to assign or replace a product's supplier
-- `DELETE /products/{productId}/supplier` to remove the association
+```bash
+curl -X POST http://localhost:8080/products/widget-1/movements \
+  -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' \
+  -d '{"type":"IN","quantity":10,"supplierOrderId":1}'
+```
 
-Product responses include `supplierId` (null when a product has no supplier). Restock suggestions now create pending supplier orders; inventory changes only after the matching inbound movement is recorded. `GET /supplier-orders` returns order history, `POST /supplier-orders` accepts `{ "productId": "product-1", "quantity": 10 }`, and `POST /supplier-orders/{id}/cancel` cancels a pending order. Include `supplierOrderId` in the inbound movement request to complete its order. For an existing MySQL database running with production `ddl-auto: validate`, apply `supplier_management_mysql.sql` and then `restock_supplier_details_mysql.sql` before starting the updated API. New local databases create/update the schema through the development configuration.
-  
-## Project Goals
-  
-### This project seeks to achieve the following:
+### Inventory and movement reads
 
-1. Centralize all business logic in the backend  
-- The frontend acts purely as a client
-- No business rules exist in Angular or any UI layer
-2. Demonstrate Clean Architecture in a real domain
-- Framework-independent domain logic
-- Explicit use cases
-- Clear dependency direction
-3. Model a realistic business problem
-- Inventory levels
-- Stock inflow/outflow
-- Reorder thresholds
-- Supplier association
-4. Produce a portfolio-grade codebase
-- Readable structure
-- Testable core
-- Architecture that can be defended in technical interviews
-  
-### What the System Does
-  
-At a high level, the system:
-  
-- Manages products and their associated suppliers
-- Tracks stock movements (IN / OUT)
-- Ensures stock levels never become invalid
-- Identifies low-stock products
-- Generates reorder suggestions based on defined policies
-- Exposes all functionality via a REST API
-  
-The system is designed so that inventory state can only change through explicit business operations, not direct database manipulation or UI-side logic.
-  
-### How the System Works
-  
-Inventory is not updated directly.
-  
-Instead:
-- Every stock change is represented by a Stock Movement
-- Stock levels are recalculated and validated in the domain layer
-- Invalid operations (e.g. negative stock) are rejected by business rules
-  
-This approach provides:
-- Full traceability
-- Auditability
-- Strong invariants
-   
-### Reorder Logic
-  
-Each product defines a minimum stock threshold.
-  
-The system:
-- Continuously evaluates current stock against this threshold
-- Flags products at or below the minimum as low stock
-- Marks products above the minimum and within 50% of it as approaching the minimum
-- Generates a reorder suggestion when a product reaches low stock, including exactly at the minimum; the target is 150% of minimum stock, rounded up to a whole unit (`minStock + ceil(minStock / 2)`) and the suggested quantity is `targetStock - currentStock`
-- Products with a zero minimum have no positive replenishment target and receive no actionable suggestion
-- Reorder logic is:
-- Deterministic
-- Centralized
-- Easily testable
-- Replaceable without changing infrastructure code
-  
-### Authentication & Access
-  
-The system supports authenticated access using JWT-based authentication.
-  
-Roles determine access to:
-- Product creation
-- Stock movement registration
-- Dashboard views
-- Authorization rules are enforced server-side and are independent of the client.
-  
-### Architecture & Design Rationale
-**Clean Architecture**
-  
-This project follows Clean Architecture, enforcing a strict separation of concerns and a clear dependency direction:
-  
-*Infrastructure* `->` *Application* `->` *Domain*
-  
-Dependencies always point inward, ensuring that core business logic is isolated from frameworks and delivery mechanisms.
+- `GET /products` lists products and current stock health.
+- `GET /products/low-stock` lists products at or below their minimum.
+- `GET /products/reorder-suggestions` returns suggested order quantities.
+- `GET /products/{productId}/movements` and `GET /movements` list movement history.
+- `POST /products/{productId}/movements` records an `IN` or `OUT` movement; an outbound quantity greater than current stock is rejected.
 
-**Layer Responsibilities**
-1. Domain Layer
-- Contains core business rules and entities
-- Enforces invariants such as non-negative stock
-- Has no dependency on frameworks or infrastructure
-The domain defines what the business is, independent of technical concerns.
-  
-2. Application Layer
-- Defines use cases representing system behavior
-- Orchestrates domain logic and workflows 
-- Depends only on domain abstractions
-This layer defines what the system does.
-  
-3. Infrastructure Layer
-- Handles REST APIs, persistence, security, and configuration
-- Maps external requests to application use cases
-- Can be replaced without affecting business logic
-This layer defines how the system is delivered.
-  
-4. Design Principles Applied
-- Single Responsibility through clearly scoped classes
-- Dependency Inversion by depending on abstractions
-- Separation of concerns across architectural layers
-  
-5. Why This Design Was Chosen
-- Centralizes all business logic in the backend
-- Prevents logic leakage into controllers or frontend code
-- Improves testability and maintainability
-- Reflects production-grade backend architecture
+### User and role management
 
-### Use Cases
-- Create Product
-  `->` Register products with required attributes and validations
-- Register Stock Movement
-  `->` Record stock inflow and outflow through controlled operations
-  `->` Reject invalid inventory changes
-- View Inventory Status
-  `->` Retrieve current stock levels and low-stock indicators
-- Generate Reorder Suggestions
-  `->` Calculate reorder quantities based on defined policies
-- Dashboard Overview
-  `->` Provide aggregated, read-only inventory summaries
-- Authenticate User
-  `->` Authenticate users and enforce role-based access
-    
+`POST /auth/users` accepts `{ "username": "operator", "password": "at-least-12-characters", "role": "INVENTORY_MANAGER" }`. `GET /auth/users` lists accounts and `DELETE /auth/users/{username}` removes an account. Users cannot delete themselves, and the last admin account cannot be deleted. `GET /auth/roles` lists permissions; `PUT /auth/roles/{role}` updates Inventory Manager or Viewer permissions. Admin permissions are fixed.
+
+## Build and tests
+
+Backend commands from `inventory`:
+
+```powershell
+.\mvnw.cmd -DskipTests package
+.\mvnw.cmd test
+```
+
+The backend tests use the H2 `dev` profile or in-memory test repositories; no external database is required. JWT tests supply a test-only signing key.
+
+Frontend commands from `webapp`:
+
+```powershell
+npm ci
+npm run build
+npm test -- --watch=false
+```
+
+The frontend tests use Angular's unit-test builder with Vitest. `npm ci` requires network access on the first run if dependencies are not already cached.
