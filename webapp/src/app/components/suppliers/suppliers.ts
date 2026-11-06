@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Product, ProductService, Supplier, apiErrorMessage } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-suppliers',
@@ -12,6 +13,7 @@ import { Product, ProductService, Supplier, apiErrorMessage } from '../../servic
 export class Suppliers implements OnInit {
   private readonly service = inject(ProductService);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  protected readonly auth = inject(AuthService);
   suppliers: Supplier[] = [];
   products: Product[] = [];
   loading = true;

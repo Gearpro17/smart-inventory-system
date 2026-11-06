@@ -26,7 +26,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfiguration {
     @Bean
-    SecurityFilterChain apiSecurity(HttpSecurity http, JwtTokenService tokens, SecurityErrorWriter errors) throws Exception {
+    SecurityFilterChain apiSecurity(HttpSecurity http, JwtTokenService tokens, SecurityErrorWriter errors, com.joele.inventory.infrastructure.security.RoleAccessService roleAccess, com.joele.inventory.infrastructure.security.UserAccountRepository users) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
@@ -35,20 +35,33 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login", "/actuator/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/products/create-product").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/products/*/movements").hasAnyRole("ADMIN", "INVENTORY_MANAGER")
-                        .requestMatchers(HttpMethod.POST, "/suppliers").hasAnyRole("ADMIN", "INVENTORY_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/suppliers/*").hasAnyRole("ADMIN", "INVENTORY_MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/products/*/supplier").hasAnyRole("ADMIN", "INVENTORY_MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/products/*/supplier").hasAnyRole("ADMIN", "INVENTORY_MANAGER")
-                        .anyRequest().authenticated())
-                .addFilterBefore(new JwtAuthenticationFilter(tokens), UsernamePasswordAuthenticationFilter.class)
+                        .anyRequest().access((authenticationSupplier, context) -> {
+                            var currentAuthentication = authenticationSupplier.get();
+                            if (currentAuthentication == null || !currentAuthentication.isAuthenticated() || currentAuthentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) return new org.springframework.security.authorization.AuthorizationDecision(false);
+                            String permission = requiredPermission(context.getRequest().getMethod(), context.getRequest().getRequestURI());
+                            if (permission == null) return new org.springframework.security.authorization.AuthorizationDecision(true);
+                            String role = currentAuthentication.getAuthorities().stream().map(a -> a.getAuthority()).filter(a -> a.startsWith("ROLE_")).map(a -> a.substring(5)).findFirst().orElse("");
+                            return new org.springframework.security.authorization.AuthorizationDecision(roleAccess.has(role, permission));
+                        }))
+                .addFilterBefore(new JwtAuthenticationFilter(tokens, users), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
+    private static String requiredPermission(String method, String path) {
+        if (path.equals("/auth/users") || path.startsWith("/auth/users/")) return "USER_MANAGE";
+        if (path.startsWith("/auth/roles") && !method.equals("GET")) return "USER_MANAGE";
+        if (path.equals("/products/create-product") && method.equals("POST")) return "PRODUCT_CREATE";
+        if (path.matches("/products/[^/]+/movements")) return method.equals("POST") ? "MOVEMENT_WRITE" : "MOVEMENT_READ";
+        if (path.equals("/movements")) return "MOVEMENT_READ";
+        if (path.equals("/suppliers") || path.startsWith("/suppliers/")) return method.equals("GET") ? "SUPPLIER_READ" : "SUPPLIER_MANAGE";
+        if (path.endsWith("/supplier") && path.startsWith("/products/")) return "SUPPLIER_MANAGE";
+        if (path.equals("/products/reorder-suggestions")) return "REORDER_READ";
+        if (path.startsWith("/products")) return "INVENTORY_READ";
+        return null;
+    }
+
     @Bean
-    PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
     UserDetailsService userDetailsService(com.joele.inventory.infrastructure.security.UserAccountRepository users) {

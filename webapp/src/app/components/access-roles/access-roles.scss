@@ -1,0 +1,17 @@
+.access-panel { padding: 22px; margin-bottom: 16px; }
+.access-panel h2 { margin: 0 0 16px; font-size: 18px; }
+.user-form { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)) auto; gap: 14px; align-items: end; }
+label { display: grid; gap: 7px; color: #c4cbc6; font-size: 13px; }
+input:not([type=checkbox]), select { min-width: 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #3b4940; background: #18221c; color: #f2f5f2; }
+.user-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid #303c34; }
+.user-row div { display:flex; gap:16px; align-items:center; }
+.role-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.role-heading h2 { margin:0 0 5px; text-transform:capitalize; }
+.role-heading p { margin:0; }
+.permission { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid #303c34; }
+.permission input { accent-color:#4bb17b; width:16px; height:16px; }
+.button { border:0; border-radius:8px; padding:10px 14px; cursor:pointer; font-weight:600; }
+.button.primary { background:#bde2c8; color:#123322; }
+.button.danger { background:#452a2a; color:#ffd1d1; }
+.button:disabled { opacity:.6; cursor:wait; }
+@media(max-width:800px) { .user-form { grid-template-columns:1fr; } .role-heading { align-items:flex-start; gap:12px; flex-direction:column; } }

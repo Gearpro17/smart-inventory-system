@@ -1,7 +1,7 @@
 <section class="page">
   <div class="page-heading">
     <div><p class="eyebrow">CATALOGUE</p><h1>{{ selected ? selected.name : 'Products' }}</h1><p class="muted">Track stock levels and product thresholds from your inventory.</p></div>
-    <div class="heading-actions"><a *ngIf="selected" class="button secondary" routerLink="/products">← All products</a><button *ngIf="!selected" class="button primary" (click)="showForm = !showForm">{{ showForm ? 'Cancel' : 'Add product' }}</button></div>
+    <div class="heading-actions"><a *ngIf="selected" class="button secondary" routerLink="/products">← All products</a><button *ngIf="!selected && auth.can('PRODUCT_CREATE')" class="button primary" (click)="showForm = !showForm">{{ showForm ? 'Cancel' : 'Add product' }}</button></div>
   </div>
   <p class="notice" *ngIf="notice" role="status">{{ notice }}</p><p class="error" *ngIf="error" role="alert">{{ error }}</p>
   <form class="panel form-grid" *ngIf="showForm" (ngSubmit)="createProduct()">

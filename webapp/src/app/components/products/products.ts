@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Product, ProductService, apiErrorMessage } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-products',
@@ -14,6 +15,7 @@ export class Products implements OnInit {
   private readonly service = inject(ProductService);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
+  protected readonly auth = inject(AuthService);
   products: Product[] = [];
   selected: Product | null = null;
   loading = true;

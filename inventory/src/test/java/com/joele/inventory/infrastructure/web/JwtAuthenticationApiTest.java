@@ -5,6 +5,7 @@ import com.joele.inventory.domain.inventory.Product;
 import com.joele.inventory.infrastructure.security.AuthenticationService;
 import com.joele.inventory.infrastructure.security.UserAccountEntity;
 import com.joele.inventory.infrastructure.security.UserAccountRepository;
+import com.joele.inventory.infrastructure.security.RolePermissionRepository;
 import com.joele.inventory.domain.security.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -26,6 +27,8 @@ import java.util.Date;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +45,7 @@ class JwtAuthenticationApiTest {
 
     @Autowired private WebApplicationContext context;
     @Autowired private UserAccountRepository users;
+    @Autowired private RolePermissionRepository rolePermissions;
     @Autowired private ProductRepository products;
     @Autowired private AuthenticationService authentication;
     @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
@@ -52,6 +56,7 @@ class JwtAuthenticationApiTest {
     void setUp() {
         mvc = webAppContextSetup(context).apply(springSecurity()).build();
         users.deleteAll();
+        rolePermissions.deleteAll();
         users.save(new UserAccountEntity("admin", passwordEncoder.encode("admin-password-123"), UserRole.ADMIN));
         users.save(new UserAccountEntity("manager", passwordEncoder.encode("manager-password-123"), UserRole.INVENTORY_MANAGER));
         users.save(new UserAccountEntity("viewer", passwordEncoder.encode("viewer-password-123"), UserRole.VIEWER));
@@ -124,6 +129,60 @@ class JwtAuthenticationApiTest {
         mvc.perform(post("/auth/users").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"blocked-user\",\"password\":\"blocked-user-password\",\"role\":\"VIEWER\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminCanChangeRolePermissionsAndApiEnforcesTheUpdatedPolicy() throws Exception {
+        String adminToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("admin", "admin-password-123")).accessToken();
+        String managerToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("manager", "manager-password-123")).accessToken();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/auth/roles/INVENTORY_MANAGER")
+                        .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"permissions\":[\"INVENTORY_READ\",\"MOVEMENT_READ\"]}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/products").header("Authorization", "Bearer " + managerToken)).andExpect(status().isOk());
+        mvc.perform(post("/products/auth-test-product/movements").header("Authorization", "Bearer " + managerToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"type\":\"IN\",\"quantity\":1}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void managerCanReadUpdatedRolePermissionsAndUseNewProductCreationAccess() throws Exception {
+        products.save(new Product("seed-product", "Seed product", 1, 0));
+        String adminToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("admin", "admin-password-123")).accessToken();
+        String managerToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("manager", "manager-password-123")).accessToken();
+        mvc.perform(put("/auth/roles/INVENTORY_MANAGER").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"permissions\":[\"INVENTORY_READ\",\"PRODUCT_CREATE\"]}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/auth/roles").header("Authorization", "Bearer " + managerToken))
+                .andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("PRODUCT_CREATE")));
+        mvc.perform(post("/products/create-product").header("Authorization", "Bearer " + managerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":\"manager-created\",\"name\":\"Manager created\",\"currentStock\":1,\"minStock\":0}"))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void adminPermissionsAreFixedAndAdminCannotDeleteTheirOwnAccount() throws Exception {
+        String adminToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("admin", "admin-password-123")).accessToken();
+        mvc.perform(put("/auth/roles/ADMIN").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"permissions\":[]}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/auth/roles").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("PRODUCT_CREATE")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("USER_MANAGE")));
+        mvc.perform(delete("/auth/users/admin").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest());
+        org.junit.jupiter.api.Assertions.assertTrue(users.existsById("admin"));
+    }
+
+    @Test
+    void deletingAnAccountImmediatelyRevokesItsPreviouslyIssuedToken() throws Exception {
+        String adminToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("admin", "admin-password-123")).accessToken();
+        String managerToken = authentication.login(new com.joele.inventory.application.dto.LoginRequestDTO("manager", "manager-password-123")).accessToken();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/auth/users/manager")
+                        .header("Authorization", "Bearer " + adminToken)).andExpect(status().isNoContent());
+        mvc.perform(get("/products").header("Authorization", "Bearer " + managerToken)).andExpect(status().isUnauthorized());
     }
 
     private void assertUnauthorized(String token) throws Exception {

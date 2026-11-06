@@ -8,6 +8,7 @@ import com.joele.inventory.domain.security.UserRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -16,14 +17,16 @@ public class AuthenticationService {
     private final UserAccountRepository users;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokens;
+    private final RoleAccessService roleAccess;
     private final long expirationSeconds;
 
     public AuthenticationService(UserAccountRepository users, PasswordEncoder passwordEncoder, JwtTokenService tokens,
-                                 @Value("${inventory.security.jwt.expiration-seconds:3600}") long expirationSeconds) {
+                                 @Value("${inventory.security.jwt.expiration-seconds:3600}") long expirationSeconds, RoleAccessService roleAccess) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.tokens = tokens;
         this.expirationSeconds = expirationSeconds;
+        this.roleAccess = roleAccess;
     }
 
     public TokenResponseDTO login(LoginRequestDTO request) {
@@ -46,6 +49,27 @@ public class AuthenticationService {
         if (users.existsById(username)) throw new IllegalArgumentException("Username is already in use");
         UserAccountEntity user = users.save(new UserAccountEntity(username, passwordEncoder.encode(request.password()), request.role()));
         return new UserResponseDTO(user.getUsername(), user.getRole().name());
+    }
+
+    public java.util.List<UserResponseDTO> listUsers() { return users.findAll().stream().map(u -> new UserResponseDTO(u.getUsername(), u.getRole().name())).toList(); }
+    @Transactional
+    public void deleteUser(String username, String actor) {
+        String normalized = normalizeUsername(username);
+        if (normalized.equals(normalizeUsername(actor))) throw new IllegalArgumentException("You cannot delete your own account");
+        UserAccountEntity target = users.findById(normalized).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (target.getRole() == UserRole.ADMIN && users.findAllByRoleForUpdate(UserRole.ADMIN).size() <= 1) {
+            throw new IllegalArgumentException("The last admin account cannot be deleted");
+        }
+        users.delete(target);
+    }
+    public java.util.List<com.joele.inventory.application.dto.RoleAccessDTO> listRoles() {
+        return java.util.Arrays.stream(UserRole.values()).map(role -> new com.joele.inventory.application.dto.RoleAccessDTO(role.name(), roleAccess.forRole(role.name()).stream().sorted().toList())).toList();
+    }
+    public void updateRole(String role, java.util.List<String> permissions) {
+        try { UserRole.valueOf(role); } catch (RuntimeException ex) { throw new IllegalArgumentException("Unknown role"); }
+        if (UserRole.ADMIN.name().equals(role)) throw new IllegalArgumentException("Admin permissions are fixed and cannot be changed");
+        if (permissions == null || !RoleAccessService.PERMISSIONS.containsAll(permissions)) throw new IllegalArgumentException("Unknown permission");
+        roleAccess.update(role, permissions);
     }
 
     private TokenResponseDTO tokenResponse(UserAccountEntity user) {

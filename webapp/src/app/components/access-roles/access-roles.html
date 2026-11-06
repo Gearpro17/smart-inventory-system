@@ -1,0 +1,21 @@
+<section class="page">
+  <div class="page-heading"><div><p class="eyebrow">SYSTEM</p><h1>Access &amp; roles</h1><p class="muted">Create accounts and choose what each role can access.</p></div></div>
+  <p class="notice" *ngIf="notice" role="status">{{ notice }}</p><p class="error" *ngIf="error" role="alert">{{ error }}</p>
+  <div class="panel access-panel">
+    <h2>Create a user</h2>
+    <form class="user-form" (ngSubmit)="createUser()">
+      <label>Username<input name="username" [(ngModel)]="form.username" required maxlength="80" autocomplete="off"></label>
+      <label>Temporary password<input name="password" type="password" [(ngModel)]="form.password" required minlength="12" autocomplete="new-password"></label>
+      <label>Role<select name="role" [(ngModel)]="form.role"><option value="ADMIN">Admin</option><option value="INVENTORY_MANAGER">Inventory manager</option><option value="VIEWER">Viewer</option></select></label>
+      <button class="button primary" [disabled]="saving">Create user</button>
+    </form>
+  </div>
+  <div class="panel access-panel">
+    <h2>Users</h2>
+    <div class="user-row" *ngFor="let user of users"><div><strong>{{ user.username }}</strong><span class="muted">{{ user.role.replace('_', ' ') }}</span></div><button class="button danger" [disabled]="isCurrentUser(user)" [attr.title]="isCurrentUser(user) ? 'You cannot delete your signed-in account' : null" (click)="deleteUser(user)">{{ isCurrentUser(user) ? 'Current account' : 'Delete' }}</button></div>
+  </div>
+  <div class="panel access-panel" *ngFor="let role of roles">
+    <div class="role-heading"><div><h2>{{ role.role.replace('_', ' ') }}</h2><p class="muted">Select the sections and actions this role can use.</p></div><button class="button primary" [disabled]="saving" (click)="saveRole(role)">Save permissions</button></div>
+    <label class="permission" *ngFor="let permission of permissionKeys"><input type="checkbox" [checked]="role.permissions.includes(permission)" (change)="toggle(role, permission, $any($event.target).checked)"><span>{{ permissionLabels[permission] }}</span></label>
+  </div>
+</section>

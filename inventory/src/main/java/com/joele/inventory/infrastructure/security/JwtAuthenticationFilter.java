@@ -1,6 +1,5 @@
 package com.joele.inventory.infrastructure.security;
 
-import com.joele.inventory.domain.security.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -17,8 +16,9 @@ import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenService tokens;
+    private final UserAccountRepository users;
 
-    public JwtAuthenticationFilter(JwtTokenService tokens) { this.tokens = tokens; }
+    public JwtAuthenticationFilter(JwtTokenService tokens, UserAccountRepository users) { this.tokens = tokens; this.users = users; }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -28,10 +28,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Claims claims = tokens.parse(header.substring(7));
                 String username = claims.getSubject();
-                String role = claims.get("role", String.class);
-                if (username == null || role == null) throw new JwtException("Required claims are missing");
+                if (username == null) throw new JwtException("Required claims are missing");
+                var account = users.findById(username).orElseThrow(() -> new JwtException("Account no longer exists"));
                 var authentication = new UsernamePasswordAuthenticationToken(username, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + UserRole.valueOf(role).name())));
+                        List.of(new SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException exception) {
                 SecurityContextHolder.clearContext();

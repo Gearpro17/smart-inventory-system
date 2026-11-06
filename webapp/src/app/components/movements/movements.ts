@@ -3,12 +3,14 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MovementType, Product, ProductService, StockMovement, apiErrorMessage } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({ selector: 'app-movements', imports: [CommonModule, FormsModule], templateUrl: './movements.html', styleUrl: './movements.scss' })
 export class Movements implements OnInit {
   private readonly service = inject(ProductService);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
+  protected readonly auth = inject(AuthService);
   products: Product[] = [];
   movements: StockMovement[] = [];
   productId = '';
